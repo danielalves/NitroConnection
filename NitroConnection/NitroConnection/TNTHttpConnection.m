@@ -52,7 +52,7 @@ static NSURLRequestCachePolicy TNTHttpConnectionDefaultCachePolicy = NSURLReques
 @property( nonatomic, readwrite, strong )NSURLConnection *connection;
 
 @property( nonatomic, readwrite, strong )NSURLRequest *lastRequest;
-@property( nonatomic, readwrite, strong )NSURLResponse *lastResponse;
+@property( nonatomic, readwrite, strong )NSHTTPURLResponse *lastResponse;
 
 @property( nonatomic, readwrite, copy )TNTHttpConnectionDidStartBlock didStartBlock;
 @property( nonatomic, readwrite, copy )TNTHttpConnectionSuccessBlock successBlock;
@@ -271,7 +271,7 @@ static NSURLRequestCachePolicy TNTHttpConnectionDefaultCachePolicy = NSURLReques
             
             // Create a strong reference to the object, so we do not get side effects if the original
             // is released elsewhere before the notification block gets executed
-             NSURLResponse *responseCopy = self.lastResponse;
+             NSHTTPURLResponse *responseCopy = self.lastResponse;
             
             [self cancel];
             
@@ -290,7 +290,7 @@ static NSURLRequestCachePolicy TNTHttpConnectionDefaultCachePolicy = NSURLReques
     }
 }
 
--( void )connection:( NSURLConnection * )connection didReceiveResponse:( NSURLResponse * )response
+-( void )connection:( NSURLConnection * )connection didReceiveResponse:( NSHTTPURLResponse * )response
 {
     // NSURLConnectionDelegate callbacks are delivered on a different queue from which the user
     // starts or cancels requests. That's why we need synchronization
@@ -324,7 +324,7 @@ static NSURLRequestCachePolicy TNTHttpConnectionDefaultCachePolicy = NSURLReques
     }];
 }
 
--( void )onNotifyConnectionSuccessWithResponse:( NSURLResponse * )response data:( NSData * )responseData
+-( void )onNotifyConnectionSuccessWithResponse:( NSHTTPURLResponse * )response data:( NSData * )responseData
 {
     [self onNotify: ^( __weak TNTHttpConnection *weakSelf ){
         if( [weakSelf.delegate respondsToSelector: @selector( onTNTHttpConnection:didReceiveResponse:withData: )] )
@@ -390,13 +390,11 @@ static NSURLRequestCachePolicy TNTHttpConnectionDefaultCachePolicy = NSURLReques
 	[responseDataBuffer appendData: data];
 }
 
--( BOOL )isSuccessfulResponse:( NSURLResponse * )response data:( NSData * )responseData error:( out NSError ** )error
+-( BOOL )isSuccessfulResponse:( NSHTTPURLResponse * )response data:( NSData * )responseData error:( out NSError ** )error
 {
-    NSHTTPURLResponse *httpResponse = ( NSHTTPURLResponse * )response;
-    
-    if( !IS_HTTP_STATUS_SUCCESS( httpResponse.statusCode ) )
+    if( !IS_HTTP_STATUS_SUCCESS( response.statusCode ) )
 	{
-		NSString *errorMsg = [NSString stringWithFormat: @"TNTHttpConnection %p failed with http status code %d", self, ( int )httpResponse.statusCode];
+		NSString *errorMsg = [NSString stringWithFormat: @"TNTHttpConnection %p failed with http status code %d", self, ( int )response.statusCode];
         
 		NTR_LOGE( @"%@", errorMsg );
 		

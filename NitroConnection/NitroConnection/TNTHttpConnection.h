@@ -31,7 +31,7 @@ FOUNDATION_EXPORT const NSInteger TNTHttpConnectionErrorCodeHttpError;
  ***********************************************************************/
 
 typedef void ( ^TNTHttpConnectionDidStartBlock )();
-typedef void ( ^TNTHttpConnectionSuccessBlock )( NSURLResponse *response, NSData *data );
+typedef void ( ^TNTHttpConnectionSuccessBlock )( NSHTTPURLResponse *response, NSData *data );
 typedef void ( ^TNTHttpConnectionErrorBlock )( NSError *error );
 
 /***********************************************************************
@@ -47,7 +47,7 @@ typedef void ( ^TNTHttpConnectionErrorBlock )( NSError *error );
 	@optional
 		-( void )onTNTHttpConnectionDidStart:( TNTHttpConnection * )connection;
 
-        -( void )onTNTHttpConnection:( TNTHttpConnection * )connection didReceiveResponse:( NSURLResponse * )response withData:( NSData * )data;
+        -( void )onTNTHttpConnection:( TNTHttpConnection * )connection didReceiveResponse:( NSHTTPURLResponse * )response withData:( NSData * )data;
 
 		-( void )onTNTHttpConnection:( TNTHttpConnection * )connection didFailWithError:( NSError * )error;
 @end
@@ -65,7 +65,7 @@ typedef void ( ^TNTHttpConnectionErrorBlock )( NSError *error );
 @property( nonatomic, readonly, assign )BOOL requestAlive;
 
 @property( nonatomic, readonly )NSURLRequest *lastRequest;
-@property( nonatomic, readonly )NSURLResponse *lastResponse;
+@property( nonatomic, readonly )NSHTTPURLResponse *lastResponse;
 
 @property( nonatomic, readwrite, assign )NSTimeInterval timeoutInterval;
 @property( nonatomic, readwrite, assign )NSURLRequestCachePolicy cachePolicy;
@@ -117,6 +117,6 @@ typedef void ( ^TNTHttpConnectionErrorBlock )( NSError *error );
 @interface TNTHttpConnection( Virtual )
 
 -( void )onDidReceiveResponseData:( NSData * )data buffer:( NSData * )dataBuffer;
--( BOOL )isSuccessfulResponse:( NSURLResponse * )response data:( NSData * )responseData error:( out NSError ** )error;
+-( BOOL )isSuccessfulResponse:( NSHTTPURLResponse * )response data:( NSData * )responseData error:( out NSError ** )error;
 
 @end
