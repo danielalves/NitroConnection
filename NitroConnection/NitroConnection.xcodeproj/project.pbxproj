@@ -124,6 +124,77 @@
 			<key>isa</key>
 			<string>PBXBuildFile</string>
 		</dict>
+		<key>123C330F1993E268008627E5</key>
+		<dict>
+			<key>fileEncoding</key>
+			<string>4</string>
+			<key>isa</key>
+			<string>PBXFileReference</string>
+			<key>lastKnownFileType</key>
+			<string>sourcecode.c.objc</string>
+			<key>path</key>
+			<string>TNTHttpConnectionSyntaticSugarTests.m</string>
+			<key>sourceTree</key>
+			<string>&lt;group&gt;</string>
+		</dict>
+		<key>123C33101993E268008627E5</key>
+		<dict>
+			<key>fileRef</key>
+			<string>123C330F1993E268008627E5</string>
+			<key>isa</key>
+			<string>PBXBuildFile</string>
+		</dict>
+		<key>123C33111993EB09008627E5</key>
+		<dict>
+			<key>fileEncoding</key>
+			<string>4</string>
+			<key>isa</key>
+			<string>PBXFileReference</string>
+			<key>lastKnownFileType</key>
+			<string>sourcecode.c.h</string>
+			<key>path</key>
+			<string>XCTestCase+Nitro_Utils.h</string>
+			<key>sourceTree</key>
+			<string>&lt;group&gt;</string>
+		</dict>
+		<key>123C33121993EB09008627E5</key>
+		<dict>
+			<key>fileEncoding</key>
+			<string>4</string>
+			<key>isa</key>
+			<string>PBXFileReference</string>
+			<key>lastKnownFileType</key>
+			<string>sourcecode.c.objc</string>
+			<key>path</key>
+			<string>XCTestCase+Nitro_Utils.m</string>
+			<key>sourceTree</key>
+			<string>&lt;group&gt;</string>
+		</dict>
+		<key>123C33131993EB09008627E5</key>
+		<dict>
+			<key>fileRef</key>
+			<string>123C33121993EB09008627E5</string>
+			<key>isa</key>
+			<string>PBXBuildFile</string>
+		</dict>
+		<key>123C33141993EB65008627E5</key>
+		<dict>
+			<key>isa</key>
+			<string>PBXFileReference</string>
+			<key>lastKnownFileType</key>
+			<string>sourcecode.c.h</string>
+			<key>path</key>
+			<string>TNTXCTTestMacros.h</string>
+			<key>sourceTree</key>
+			<string>&lt;group&gt;</string>
+		</dict>
+		<key>123C33151993F23C008627E5</key>
+		<dict>
+			<key>fileRef</key>
+			<string>12DB6C1C1989896200A1E571</string>
+			<key>isa</key>
+			<string>PBXBuildFile</string>
+		</dict>
 		<key>12DB6C131989896100A1E571</key>
 		<dict>
 			<key>children</key>
@@ -133,6 +204,7 @@
 				<string>12DB6C1E1989896200A1E571</string>
 				<string>12DB6C1D1989896200A1E571</string>
 				<string>09D595CB6FB84B6E98841BED</string>
+				<string>B36589D5030246C5822E3339</string>
 			</array>
 			<key>isa</key>
 			<string>PBXGroup</string>
@@ -147,6 +219,14 @@
 				<string>0510</string>
 				<key>ORGANIZATIONNAME</key>
 				<string>Daniel L. Alves</string>
+				<key>TargetAttributes</key>
+				<dict>
+					<key>12DB6C2B1989896500A1E571</key>
+					<dict>
+						<key>TestTargetID</key>
+						<string>12DB6C1B1989896200A1E571</string>
+					</dict>
+				</dict>
 			</dict>
 			<key>buildConfigurationList</key>
 			<string>12DB6C171989896100A1E571</string>
@@ -299,6 +379,7 @@
 				<string>12DB6C1F1989896200A1E571</string>
 				<string>12DB6C2D1989896500A1E571</string>
 				<string>D23C75BAC98B479D9648E27D</string>
+				<string>5898176160E844D786FD3D5B</string>
 			</array>
 			<key>isa</key>
 			<string>PBXGroup</string>
@@ -381,7 +462,9 @@
 			<string>2147483647</string>
 			<key>files</key>
 			<array>
+				<string>123C33101993E268008627E5</string>
 				<string>12DB6C3C1989896500A1E571</string>
+				<string>123C33131993EB09008627E5</string>
 			</array>
 			<key>isa</key>
 			<string>PBXSourcesBuildPhase</string>
@@ -394,8 +477,10 @@
 			<string>2147483647</string>
 			<key>files</key>
 			<array>
+				<string>123C33151993F23C008627E5</string>
 				<string>12DB6C2E1989896500A1E571</string>
 				<string>12DB6C2F1989896500A1E571</string>
+				<string>365F223E0DB14E08BD591B0C</string>
 			</array>
 			<key>isa</key>
 			<string>PBXFrameworksBuildPhase</string>
@@ -419,9 +504,11 @@
 			<string>12DB6C421989896500A1E571</string>
 			<key>buildPhases</key>
 			<array>
+				<string>79D5EB049FD34299B46BE4CE</string>
 				<string>12DB6C281989896500A1E571</string>
 				<string>12DB6C291989896500A1E571</string>
 				<string>12DB6C2A1989896500A1E571</string>
+				<string>BE7A5D678C26494B96A0D86D</string>
 			</array>
 			<key>buildRules</key>
 			<array/>
@@ -507,6 +594,10 @@
 			<key>children</key>
 			<array>
 				<string>12DB6C3B1989896500A1E571</string>
+				<string>123C330F1993E268008627E5</string>
+				<string>123C33141993EB65008627E5</string>
+				<string>123C33111993EB09008627E5</string>
+				<string>123C33121993EB09008627E5</string>
 			</array>
 			<key>isa</key>
 			<string>PBXGroup</string>
@@ -522,7 +613,7 @@
 			<key>lastKnownFileType</key>
 			<string>sourcecode.c.objc</string>
 			<key>path</key>
-			<string>NitroConnectionTests.m</string>
+			<string>TNTHttpConnectionTests.m</string>
 			<key>sourceTree</key>
 			<string>&lt;group&gt;</string>
 		</dict>
@@ -594,6 +685,8 @@
 				<string>7.0</string>
 				<key>ONLY_ACTIVE_ARCH</key>
 				<string>YES</string>
+				<key>OTHER_LDFLAGS</key>
+				<string>-ObjC</string>
 				<key>SDKROOT</key>
 				<string>iphoneos</string>
 			</dict>
@@ -652,6 +745,8 @@
 				<string>YES</string>
 				<key>IPHONEOS_DEPLOYMENT_TARGET</key>
 				<string>7.0</string>
+				<key>OTHER_LDFLAGS</key>
+				<string>-ObjC</string>
 				<key>SDKROOT</key>
 				<string>iphoneos</string>
 				<key>VALIDATE_PRODUCT</key>
@@ -740,6 +835,8 @@
 		</dict>
 		<key>12DB6C431989896500A1E571</key>
 		<dict>
+			<key>baseConfigurationReference</key>
+			<string>B36589D5030246C5822E3339</string>
 			<key>buildSettings</key>
 			<dict>
 				<key>FRAMEWORK_SEARCH_PATHS</key>
@@ -757,8 +854,8 @@
 					<string>DEBUG=1</string>
 					<string>$(inherited)</string>
 				</array>
-				<key>INFOPLIST_FILE</key>
-				<string>NitroConnectionTests/NitroConnectionTests-Info.plist</string>
+				<key>OTHER_LDFLAGS</key>
+				<string>$(inherited)</string>
 				<key>PRODUCT_NAME</key>
 				<string>$(TARGET_NAME)</string>
 				<key>WRAPPER_EXTENSION</key>
@@ -771,6 +868,8 @@
 		</dict>
 		<key>12DB6C441989896500A1E571</key>
 		<dict>
+			<key>baseConfigurationReference</key>
+			<string>B36589D5030246C5822E3339</string>
 			<key>buildSettings</key>
 			<dict>
 				<key>FRAMEWORK_SEARCH_PATHS</key>
@@ -783,8 +882,8 @@
 				<string>YES</string>
 				<key>GCC_PREFIX_HEADER</key>
 				<string>NitroConnection/NitroConnection-Prefix.pch</string>
-				<key>INFOPLIST_FILE</key>
-				<string>NitroConnectionTests/NitroConnectionTests-Info.plist</string>
+				<key>OTHER_LDFLAGS</key>
+				<string>$(inherited)</string>
 				<key>PRODUCT_NAME</key>
 				<string>$(TARGET_NAME)</string>
 				<key>WRAPPER_EXTENSION</key>
@@ -874,7 +973,57 @@
 			<key>isa</key>
 			<string>PBXBuildFile</string>
 		</dict>
+		<key>365F223E0DB14E08BD591B0C</key>
+		<dict>
+			<key>fileRef</key>
+			<string>5898176160E844D786FD3D5B</string>
+			<key>isa</key>
+			<string>PBXBuildFile</string>
+		</dict>
 		<key>3A18C2B4C2414FB48B63E6B0</key>
+		<dict>
+			<key>buildActionMask</key>
+			<string>2147483647</string>
+			<key>files</key>
+			<array/>
+			<key>inputPaths</key>
+			<array/>
+			<key>isa</key>
+			<string>PBXShellScriptBuildPhase</string>
+			<key>name</key>
+			<string>Check Pods Manifest.lock</string>
+			<key>outputPaths</key>
+			<array/>
+			<key>runOnlyForDeploymentPostprocessing</key>
+			<string>0</string>
+			<key>shellPath</key>
+			<string>/bin/sh</string>
+			<key>shellScript</key>
+			<string>diff "${PODS_ROOT}/../Podfile.lock" "${PODS_ROOT}/Manifest.lock" &gt; /dev/null
+if [[ $? != 0 ]] ; then
+    cat &lt;&lt; EOM
+error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.
+EOM
+    exit 1
+fi
+</string>
+			<key>showEnvVarsInLog</key>
+			<string>0</string>
+		</dict>
+		<key>5898176160E844D786FD3D5B</key>
+		<dict>
+			<key>explicitFileType</key>
+			<string>archive.ar</string>
+			<key>includeInIndex</key>
+			<string>0</string>
+			<key>isa</key>
+			<string>PBXFileReference</string>
+			<key>path</key>
+			<string>libPods-NitroConnectionTests.a</string>
+			<key>sourceTree</key>
+			<string>BUILT_PRODUCTS_DIR</string>
+		</dict>
+		<key>79D5EB049FD34299B46BE4CE</key>
 		<dict>
 			<key>buildActionMask</key>
 			<string>2147483647</string>
@@ -910,6 +1059,45 @@ fi
 			<string>D23C75BAC98B479D9648E27D</string>
 			<key>isa</key>
 			<string>PBXBuildFile</string>
+		</dict>
+		<key>B36589D5030246C5822E3339</key>
+		<dict>
+			<key>includeInIndex</key>
+			<string>1</string>
+			<key>isa</key>
+			<string>PBXFileReference</string>
+			<key>lastKnownFileType</key>
+			<string>text.xcconfig</string>
+			<key>name</key>
+			<string>Pods-NitroConnectionTests.xcconfig</string>
+			<key>path</key>
+			<string>Pods/Pods-NitroConnectionTests.xcconfig</string>
+			<key>sourceTree</key>
+			<string>&lt;group&gt;</string>
+		</dict>
+		<key>BE7A5D678C26494B96A0D86D</key>
+		<dict>
+			<key>buildActionMask</key>
+			<string>2147483647</string>
+			<key>files</key>
+			<array/>
+			<key>inputPaths</key>
+			<array/>
+			<key>isa</key>
+			<string>PBXShellScriptBuildPhase</string>
+			<key>name</key>
+			<string>Copy Pods Resources</string>
+			<key>outputPaths</key>
+			<array/>
+			<key>runOnlyForDeploymentPostprocessing</key>
+			<string>0</string>
+			<key>shellPath</key>
+			<string>/bin/sh</string>
+			<key>shellScript</key>
+			<string>"${SRCROOT}/Pods/Pods-NitroConnectionTests-resources.sh"
+</string>
+			<key>showEnvVarsInLog</key>
+			<string>0</string>
 		</dict>
 		<key>BF736994CE0F4206BCE91CD2</key>
 		<dict>

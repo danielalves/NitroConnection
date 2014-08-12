@@ -13,7 +13,7 @@
 @implementation NSString( TNTHttpMethod )
 
 +( NSString * )stringFromHttpMethod:( TNTHttpMethod )method
-{
+{    
     switch( method )
     {
         case TNTHttpMethodGet:

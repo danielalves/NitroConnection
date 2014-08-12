@@ -1,10 +1,13 @@
 PODS:
   - NitroMisc (1.0.1)
+  - OHHTTPStubs (3.1.4)
 
 DEPENDENCIES:
   - NitroMisc (~> 1.0.1)
+  - OHHTTPStubs (~> 3.1.4)
 
 SPEC CHECKSUMS:
   NitroMisc: a7bfc1077d457fc9550ef787cf75ade23b608911
+  OHHTTPStubs: 398901e787d9b62ce539a8a3df0b81431a98236a
 
 COCOAPODS: 0.33.1

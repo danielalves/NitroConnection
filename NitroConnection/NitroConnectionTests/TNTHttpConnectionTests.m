@@ -1,5 +1,5 @@
 //
-//  NitroConnectionTests.m
+//  TNTHttpConnectionTests.m
 //  NitroConnectionTests
 //
 //  Created by Daniel L. Alves on 30/07/14.
@@ -8,10 +8,10 @@
 
 #import <XCTest/XCTest.h>
 
-@interface NitroConnectionTests : XCTestCase
+@interface TNTHttpConnectionTests : XCTestCase
 
 @end
 
-@implementation NitroConnectionTests
+@implementation TNTHttpConnectionTests
 
 @end
