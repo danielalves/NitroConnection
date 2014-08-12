@@ -70,9 +70,9 @@ typedef void ( ^TNTHttpConnectionErrorBlock )( NSError *error );
 @property( nonatomic, readwrite, assign )NSTimeInterval timeoutInterval;
 @property( nonatomic, readwrite, assign )NSURLRequestCachePolicy cachePolicy;
 
-//
-// Request management
-//
+/**
+ *  @name Request management
+ */
 -( void )startRequest:( NSURLRequest * )request;
 
 -( void )startRequest:( NSURLRequest * )request
@@ -97,9 +97,9 @@ typedef void ( ^TNTHttpConnectionErrorBlock )( NSError *error );
 
 -( void )cancel;
 
-//
-// Default configurations
-//
+/**
+ *  @name Default configurations
+ */
 +( void )setDefaultCachePolicy:( NSURLRequestCachePolicy )cachePolicy;
 +( NSURLRequestCachePolicy )defaultCachePolicy;
 
