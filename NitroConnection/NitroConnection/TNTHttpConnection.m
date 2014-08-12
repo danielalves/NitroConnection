@@ -18,9 +18,9 @@
 #pragma mark - Defines
 
 #if DEBUG
-	#define DEFAULT_CONN_TIMEOUT_INTERVAL_SECS 30
+	#define DEFAULT_CONNECTION_TIMEOUT_INTERVAL_SECS 30
 #else
-	#define DEFAULT_CONN_TIMEOUT_INTERVAL_SECS 3
+	#define DEFAULT_CONNECTION_TIMEOUT_INTERVAL_SECS 3
 #endif
 
 #define K_BYTE 1024
@@ -36,7 +36,7 @@ const NSInteger TNTHttpConnectionErrorCodeHttpError = 1;
 
 #pragma mark - Statics
 
-static NSTimeInterval TNTHttpConnectionDefaultTimeoutInterval = DEFAULT_CONN_TIMEOUT_INTERVAL_SECS;
+static NSTimeInterval TNTHttpConnectionDefaultTimeoutInterval = DEFAULT_CONNECTION_TIMEOUT_INTERVAL_SECS;
 static NSURLRequestCachePolicy TNTHttpConnectionDefaultCachePolicy = NSURLRequestUseProtocolCachePolicy;
 
 #pragma mark - Class Extension
@@ -89,9 +89,9 @@ static NSURLRequestCachePolicy TNTHttpConnectionDefaultCachePolicy = NSURLReques
     // object, there is no need to call the delegate or callback blocks. There is
     // also no need for KVO here, that's why we are not using setters here.
 	_delegate = nil;
-    _didStartBlock = nil;
-    _successBlock = nil;
-    _errorBlock = nil;
+    self.didStartBlock = nil;
+    self.successBlock = nil;
+    self.errorBlock = nil;
 	
 	[self cancel];
 }
@@ -150,8 +150,8 @@ static NSURLRequestCachePolicy TNTHttpConnectionDefaultCachePolicy = NSURLReques
             
             
             request = [NSMutableURLRequest requestWithURL: [NSURL URLWithString: url]
-                                              cachePolicy: self.cachePolicy
-                                          timeoutInterval: self.timeoutInterval];
+                                              cachePolicy: _cachePolicy
+                                          timeoutInterval: _timeoutInterval];
             
             break;
             
@@ -159,8 +159,8 @@ static NSURLRequestCachePolicy TNTHttpConnectionDefaultCachePolicy = NSURLReques
         case TNTHttpMethodPost:
         case TNTHttpMethodPatch:
             request = [NSMutableURLRequest requestWithURL: [NSURL URLWithString: url]
-                                              cachePolicy: self.cachePolicy
-                                          timeoutInterval: self.timeoutInterval];
+                                              cachePolicy: _cachePolicy
+                                          timeoutInterval: _timeoutInterval];
             
             if( params )
                 [request setHTTPBody: [formattedParams dataUsingEncoding: NSUTF8StringEncoding]];
@@ -201,16 +201,17 @@ static NSURLRequestCachePolicy TNTHttpConnectionDefaultCachePolicy = NSURLReques
         
         self.requestAlive = NO;
         
-        responseDataBuffer = nil;
+        // Caller queue is used to dispatch notifications. So we are only going to reset it
+        // if the user starts another request
+//        callerQueue = nil;
         
-        callerQueue = nil;
-        
-        // We do not reset lastResponse here because the user may want to
-        // check a connection response after it has been canceled
-//    self.lastResponse = nil;
+        // We do not reset lastResponse and responseDataBuffer here because the user
+        // may want them after a request has been canceled
+//        self.lastResponse = nil;
+//        responseDataBuffer = nil;
         
         // We do not reset lastRequest because the user may want to retry
-//    self.lastRequest = nil;
+//        self.lastRequest = nil;
     }
 }
 
@@ -229,7 +230,7 @@ static NSURLRequestCachePolicy TNTHttpConnectionDefaultCachePolicy = NSURLReques
             self.lastRequest = request;
             self.lastResponse = nil;
 
-            _connection = [TNTHttpConnection createConnectionWithRequest: request delegate: self];
+            _connection = [TNTHttpConnection createConnectionWithRequest: request delegate: self inQueue: notificationQueue];
             responseDataBuffer = [NSMutableData dataWithCapacity: K_BYTE];
             
             callerQueue = [NSOperationQueue currentQueue];
@@ -239,7 +240,7 @@ static NSURLRequestCachePolicy TNTHttpConnectionDefaultCachePolicy = NSURLReques
             // We have to call 'start' before sending the did start notification. This way, if
             // the user does something crazy as startint another connection using this same object
             // inside the notification callback, we will not get into a unexpected internal state.
-            [self.connection start];
+            [_connection start];
             
             self.requestAlive = YES;
             [self onNotifyConnectionDidStart];
@@ -256,7 +257,7 @@ static NSURLRequestCachePolicy TNTHttpConnectionDefaultCachePolicy = NSURLReques
     @synchronized( self )
     {
         NSError *error = nil;
-        if( ![self isSuccessfulResponse: self.lastResponse data: responseDataBuffer error: &error] )
+        if( ![self isSuccessfulResponse: _lastResponse data: responseDataBuffer error: &error] )
         {
             // This call will clean our internal state. So there is no problem if the user
             // starts another request using this same object
@@ -271,7 +272,7 @@ static NSURLRequestCachePolicy TNTHttpConnectionDefaultCachePolicy = NSURLReques
             
             // Create a strong reference to the object, so we do not get side effects if the original
             // is released elsewhere before the notification block gets executed
-             NSHTTPURLResponse *responseCopy = self.lastResponse;
+             NSHTTPURLResponse *responseCopy = _lastResponse;
             
             [self cancel];
             
@@ -287,6 +288,9 @@ static NSURLRequestCachePolicy TNTHttpConnectionDefaultCachePolicy = NSURLReques
     @synchronized( self )
     {
         [self onDidReceiveResponseData: data buffer: responseDataBuffer];
+        
+        NSString * temp = [[NSString alloc] initWithData: responseDataBuffer encoding: NSUTF8StringEncoding];
+        NTR_LOGI( @"%@", temp );
     }
 }
 
@@ -385,9 +389,9 @@ static NSURLRequestCachePolicy TNTHttpConnectionDefaultCachePolicy = NSURLReques
 
 #pragma mark - Virtual
 
--( void )onDidReceiveResponseData:( NSData * )data buffer:( NSData * )dataBuffer
+-( void )onDidReceiveResponseData:( NSData * )data buffer:( NSMutableData * )dataBuffer
 {
-	[responseDataBuffer appendData: data];
+	[dataBuffer appendData: data];
 }
 
 -( BOOL )isSuccessfulResponse:( NSHTTPURLResponse * )response data:( NSData * )responseData error:( out NSError ** )error
@@ -411,10 +415,10 @@ static NSURLRequestCachePolicy TNTHttpConnectionDefaultCachePolicy = NSURLReques
 
 #pragma mark - Helpers
 
-+( NSURLConnection * )createConnectionWithRequest:( NSURLRequest * )request delegate:( id )connectionDelegate;
++( NSURLConnection * )createConnectionWithRequest:( NSURLRequest * )request delegate:( id )connectionDelegate inQueue:( NSOperationQueue * )queue;
 {
 	NSURLConnection *temp = [[NSURLConnection alloc] initWithRequest: request delegate: connectionDelegate startImmediately: NO];
-    [temp setDelegateQueue: [TNTHttpConnection connectionProcessingQueue]];
+    [temp setDelegateQueue: queue];
     return temp;
 }
 
@@ -458,24 +462,6 @@ static NSURLRequestCachePolicy TNTHttpConnectionDefaultCachePolicy = NSURLReques
 //    {
         return TNTHttpConnectionDefaultTimeoutInterval;
 //    }
-}
-
-+( NSOperationQueue* )connectionProcessingQueue
-{
-    // This synchronization makes queue initialization thread safe
-    @synchronized( self )
-    {
-        static NSOperationQueue *queue = nil;
-        
-        if( !queue )
-        {
-            queue = [NSOperationQueue new];
-            queue.name = @"TNTHttpConnectionProcessingQueue";
-            queue.maxConcurrentOperationCount = NSOperationQueueDefaultMaxConcurrentOperationCount;
-        }
-        
-        return queue;
-    }
 }
 
 @end
