@@ -39,6 +39,7 @@ typedef NS_ENUM( NSInteger, TNTHttpStatusCode )
     TNTHttpStatusCodeSeeOther                       = 303,
     TNTHttpStatusCodeNotModified                    = 304,
     TNTHttpStatusCodeUseProxy                       = 305,
+    // 306 is not used                              = 306,
     TNTHttpStatusCodeTemporaryRedirect              = 307,
     
     // Client Error 4xx
