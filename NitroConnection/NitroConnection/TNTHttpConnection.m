@@ -131,56 +131,70 @@ static NSURLRequestCachePolicy TNTHttpConnectionDefaultCachePolicy = NSURLReques
 
 -( void )startRequestWithMethod:( TNTHttpMethod )httpMethod
                             url:( NSString * )url
+                    queryString:( NSDictionary * )queryString
+                           body:( NSData * )body
+                        headers:( NSDictionary * )headers
+                     onDidStart:( TNTHttpConnectionDidStartBlock )didStartBlock
+                      onSuccess:( TNTHttpConnectionSuccessBlock )successBlock
+                        onError:( TNTHttpConnectionErrorBlock )errorBlock
+{
+    NSString *formattedQueryString = [queryString toQueryString];
+    if( queryString.count > 0 )
+        url = [url stringByAppendingFormat: @"?%@", formattedQueryString];
+
+    NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL: [NSURL URLWithString: url]
+                                                           cachePolicy: _cachePolicy
+                                                       timeoutInterval: _timeoutInterval];
+
+    if ( body ) {
+        [request setHTTPBody: body];
+    }
+
+    [request setHTTPMethod: [NSString stringFromHttpMethod: httpMethod]];
+
+    for( NSString *headerField in [headers allKeys] )
+        [request addValue: [headers valueForKey: headerField] forHTTPHeaderField: headerField];
+
+    [self startRequest: request
+            onDidStart: didStartBlock
+             onSuccess: successBlock
+               onError: errorBlock];
+}
+
+-( void )startRequestWithMethod:( TNTHttpMethod )httpMethod
+                            url:( NSString * )url
                          params:( NSDictionary * )params
                         headers:( NSDictionary * )headers
                      onDidStart:( TNTHttpConnectionDidStartBlock )didStartBlock
                       onSuccess:( TNTHttpConnectionSuccessBlock )successBlock
                         onError:( TNTHttpConnectionErrorBlock )errorBlock
 {
-    NSMutableURLRequest *request = nil;
-    NSString *formattedParams = [params toQueryString];
-    
     switch( httpMethod )
     {
         case TNTHttpMethodGet:
         case TNTHttpMethodHead:
         case TNTHttpMethodDelete:
-            if( params.count > 0 )
-                url = [url stringByAppendingFormat: @"?%@", formattedParams];
-            
-            
-            request = [NSMutableURLRequest requestWithURL: [NSURL URLWithString: url]
-                                              cachePolicy: _cachePolicy
-                                          timeoutInterval: _timeoutInterval];
-            
+            [self startRequestWithMethod:httpMethod
+                                     url:url
+                             queryString:params
+                                    body:nil
+                                 headers:headers
+                              onDidStart:didStartBlock
+                               onSuccess:successBlock
+                                 onError:errorBlock];
             break;
-            
         case TNTHttpMethodPut:
         case TNTHttpMethodPost:
         case TNTHttpMethodPatch:
-            request = [NSMutableURLRequest requestWithURL: [NSURL URLWithString: url]
-                                              cachePolicy: _cachePolicy
-                                          timeoutInterval: _timeoutInterval];
-            
-            if( params )
-                [request setHTTPBody: [formattedParams dataUsingEncoding: NSUTF8StringEncoding]];
-            
-            break;
-            
-        default:
-            NTR_LOGE( @"Unknown HTTP method" );
-            return;
+            [self startRequestWithMethod:httpMethod
+                                     url:url
+                             queryString:nil
+                                    body:[[params toQueryString] dataUsingEncoding: NSUTF8StringEncoding]
+                                 headers:headers
+                              onDidStart:didStartBlock
+                               onSuccess:successBlock
+                                 onError:errorBlock];
     }
-    
-    [request setHTTPMethod: [NSString stringFromHttpMethod: httpMethod]];
-    
-    for( NSString *headerField in [headers allKeys] )
-        [request addValue: [headers valueForKey: headerField] forHTTPHeaderField: headerField];
-    
-    [self startRequest: request
-            onDidStart: didStartBlock
-             onSuccess: successBlock
-               onError: errorBlock];
 }
 
 -( void )retry
