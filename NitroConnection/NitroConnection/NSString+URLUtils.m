@@ -17,7 +17,7 @@
 	return ( __bridge_transfer NSString* )CFURLCreateStringByAddingPercentEscapes( kCFAllocatorDefault,
                                                                                    ( __bridge CFStringRef )self,
                                                                                    NULL,
-                                                                                   ( __bridge CFStringRef )@"!*'\"();:@&=+$,/?%#[]% ",
+                                                                                   ( __bridge CFStringRef )@"!*'\"{}();:@&=+$,/?#[]% ",
                                                                                    CFStringConvertNSStringEncodingToEncoding( encoding ));
 }
 
