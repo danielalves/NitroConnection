@@ -87,6 +87,15 @@ typedef void ( ^TNTHttpConnectionErrorBlock )( NSError *error );
 
 -( void )startRequestWithMethod:( TNTHttpMethod )httpMethod
                             url:( NSString * )url
+                    queryString:( NSDictionary * )queryString
+                           body:( NSData * )body
+                        headers:( NSDictionary * )headers
+                     onDidStart:( TNTHttpConnectionDidStartBlock )didStartBlock
+                      onSuccess:( TNTHttpConnectionSuccessBlock )successBlock
+                        onError:( TNTHttpConnectionErrorBlock )errorBlock;
+
+-( void )startRequestWithMethod:( TNTHttpMethod )httpMethod
+                            url:( NSString * )url
                          params:( NSDictionary * )params
                         headers:( NSDictionary * )headers
                      onDidStart:( TNTHttpConnectionDidStartBlock )didStartBlock
