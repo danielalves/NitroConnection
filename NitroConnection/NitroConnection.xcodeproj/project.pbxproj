@@ -11,7 +11,7 @@
 		123C32C7199162DC008627E5 /* NSString+URLUtils.m in Sources */ = {isa = PBXBuildFile; fileRef = 123C32C6199162DC008627E5 /* NSString+URLUtils.m */; };
 		123C32CA1992A61B008627E5 /* NSDictionary+QueryString.m in Sources */ = {isa = PBXBuildFile; fileRef = 123C32C91992A61B008627E5 /* NSDictionary+QueryString.m */; };
 		123C33101993E268008627E5 /* TNTHttpConnectionSyntaticSugarTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 123C330F1993E268008627E5 /* TNTHttpConnectionSyntaticSugarTests.m */; };
-		123C33131993EB09008627E5 /* XCTestCase+Nitro_Utils.m in Sources */ = {isa = PBXBuildFile; fileRef = 123C33121993EB09008627E5 /* XCTestCase+Nitro_Utils.m */; };
+		123C33131993EB09008627E5 /* TNTTestCase.m in Sources */ = {isa = PBXBuildFile; fileRef = 123C33121993EB09008627E5 /* TNTTestCase.m */; };
 		123C33151993F23C008627E5 /* libNitroConnection.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 12DB6C1C1989896200A1E571 /* libNitroConnection.a */; };
 		1293650B199A795B00C48105 /* NSStringURLUtilsTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 1293650A199A795B00C48105 /* NSStringURLUtilsTests.m */; };
 		1293650D199A886200C48105 /* TNTHttpMethodsTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 1293650C199A886200C48105 /* TNTHttpMethodsTests.m */; };
@@ -58,8 +58,8 @@
 		123C32C81992A61B008627E5 /* NSDictionary+QueryString.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSDictionary+QueryString.h"; sourceTree = "<group>"; };
 		123C32C91992A61B008627E5 /* NSDictionary+QueryString.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSDictionary+QueryString.m"; sourceTree = "<group>"; };
 		123C330F1993E268008627E5 /* TNTHttpConnectionSyntaticSugarTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TNTHttpConnectionSyntaticSugarTests.m; sourceTree = "<group>"; };
-		123C33111993EB09008627E5 /* XCTestCase+Nitro_Utils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "XCTestCase+Nitro_Utils.h"; sourceTree = "<group>"; };
-		123C33121993EB09008627E5 /* XCTestCase+Nitro_Utils.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "XCTestCase+Nitro_Utils.m"; sourceTree = "<group>"; };
+		123C33111993EB09008627E5 /* TNTTestCase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TNTTestCase.h; sourceTree = "<group>"; };
+		123C33121993EB09008627E5 /* TNTTestCase.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TNTTestCase.m; sourceTree = "<group>"; };
 		123C33141993EB65008627E5 /* TNTXCTTestMacros.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TNTXCTTestMacros.h; sourceTree = "<group>"; };
 		1293650A199A795B00C48105 /* NSStringURLUtilsTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NSStringURLUtilsTests.m; sourceTree = "<group>"; };
 		1293650C199A886200C48105 /* TNTHttpMethodsTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TNTHttpMethodsTests.m; sourceTree = "<group>"; };
@@ -167,15 +167,15 @@
 		12DB6C351989896500A1E571 /* NitroConnectionTests */ = {
 			isa = PBXGroup;
 			children = (
+				12936510199BDB0500C48105 /* NSDictionaryQueryString.m */,
 				1293650A199A795B00C48105 /* NSStringURLUtilsTests.m */,
 				12DB6C3B1989896500A1E571 /* TNTHttpConnectionTests.m */,
 				123C330F1993E268008627E5 /* TNTHttpConnectionSyntaticSugarTests.m */,
 				1293650C199A886200C48105 /* TNTHttpMethodsTests.m */,
 				1293650E199A8ABE00C48105 /* TNTHttpStatusCodesTests.m */,
+				123C33111993EB09008627E5 /* TNTTestCase.h */,
+				123C33121993EB09008627E5 /* TNTTestCase.m */,
 				123C33141993EB65008627E5 /* TNTXCTTestMacros.h */,
-				123C33111993EB09008627E5 /* XCTestCase+Nitro_Utils.h */,
-				123C33121993EB09008627E5 /* XCTestCase+Nitro_Utils.m */,
-				12936510199BDB0500C48105 /* NSDictionaryQueryString.m */,
 			);
 			path = NitroConnectionTests;
 			sourceTree = "<group>";
@@ -350,7 +350,7 @@
 				1293650B199A795B00C48105 /* NSStringURLUtilsTests.m in Sources */,
 				12936511199BDB0500C48105 /* NSDictionaryQueryString.m in Sources */,
 				12DB6C3C1989896500A1E571 /* TNTHttpConnectionTests.m in Sources */,
-				123C33131993EB09008627E5 /* XCTestCase+Nitro_Utils.m in Sources */,
+				123C33131993EB09008627E5 /* TNTTestCase.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -73,9 +73,10 @@ typedef void ( ^TNTHttpConnectionErrorBlock )( NSError *error );
 /**
  *  @name Request management
  */
--( void )startRequest:( NSURLRequest * )request;
+-( void )startRequest:( NSURLRequest * )request managed:( BOOL )managed;
 
 -( void )startRequest:( NSURLRequest * )request
+              managed:( BOOL )managed
            onDidStart:( TNTHttpConnectionDidStartBlock )didStartBlock
             onSuccess:( TNTHttpConnectionSuccessBlock )successBlock
               onError:( TNTHttpConnectionErrorBlock )errorBlock;
@@ -83,12 +84,14 @@ typedef void ( ^TNTHttpConnectionErrorBlock )( NSError *error );
 -( void )startRequestWithMethod:( TNTHttpMethod )httpMethod
                             url:( NSString * )url
                          params:( NSDictionary * )params
-                        headers:( NSDictionary * )headers;
+                        headers:( NSDictionary * )headers
+                        managed:( BOOL )managed;
 
 -( void )startRequestWithMethod:( TNTHttpMethod )httpMethod
                             url:( NSString * )url
                          params:( NSDictionary * )params
                         headers:( NSDictionary * )headers
+                        managed:( BOOL )managed
                      onDidStart:( TNTHttpConnectionDidStartBlock )didStartBlock
                       onSuccess:( TNTHttpConnectionSuccessBlock )successBlock
                         onError:( TNTHttpConnectionErrorBlock )errorBlock;

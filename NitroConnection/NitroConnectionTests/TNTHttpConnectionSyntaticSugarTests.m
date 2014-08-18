@@ -6,18 +6,12 @@
 //  Copyright (c) 2014 Daniel L. Alves. All rights reserved.
 //
 
-#import <XCTest/XCTest.h>
-
-// ios
-#import <Foundation/Foundation.h>
+#import "TNTTestCase.h"
 
 // NitroConnection
 #import "NSDictionary+QueryString.h"
 #import "TNTHttpConnection+SyntaticSugar.h"
 #import "TNTHttpStatusCodes.h"
-
-// NitroMisc
-#import "XCTestCase+Nitro_Utils.h"
 
 // Pods
 #import <OHHTTPStubs/OHHTTPStubs.h>
@@ -56,7 +50,7 @@ static NSString * const NitroConnectionTestsStubErrorURL = @"http://error.nitroc
 
 #pragma mark - TNTHttpConnectionSyntaticSugarTests Interface
 
-@interface TNTHttpConnectionSyntaticSugarTests : XCTestCase< TNTHttpConnectionDelegate >
+@interface TNTHttpConnectionSyntaticSugarTests : TNTTestCase< TNTHttpConnectionDelegate >
 {
     TNTHttpConnection *connection;
     
@@ -76,6 +70,8 @@ static NSString * const NitroConnectionTestsStubErrorURL = @"http://error.nitroc
 
 +( void )setUp
 {
+    [super setUp];
+    
     [OHHTTPStubs stubRequestsPassingTest: ^BOOL( NSURLRequest *request ) {
                             return [request.URL.absoluteString isEqualToString: NitroConnectionTestsStubURL];
                         }
@@ -99,6 +95,8 @@ static NSString * const NitroConnectionTestsStubErrorURL = @"http://error.nitroc
 +( void )tearDown
 {
     [OHHTTPStubs removeAllStubs];
+    
+    [super tearDown];
 }
 
 #pragma mark - Http Get
@@ -113,6 +111,65 @@ static NSString * const NitroConnectionTestsStubErrorURL = @"http://error.nitroc
     
     [TNTHttpConnection get: NitroConnectionTestsStubURL withParams: nil headers: nil delegate: self];
     [TNTHttpConnection get: NitroConnectionTestsStubURL withParams: nil headers: nil onDidStart: nil onSuccess: nil onError: nil];
+}
+
+-( void )test_get_unmanaged_methods_compile
+{
+    [TNTHttpConnection unmanagedGet: NitroConnectionTestsStubURL delegate: nil];
+    [TNTHttpConnection unmanagedGet: NitroConnectionTestsStubURL onDidStart: nil onSuccess: nil onError: nil];
+    
+    [TNTHttpConnection unmanagedGet: NitroConnectionTestsStubURL withParams: nil delegate: self];
+    [TNTHttpConnection unmanagedGet: NitroConnectionTestsStubURL withParams: nil onDidStart: nil onSuccess: nil onError: nil];
+    
+    [TNTHttpConnection unmanagedGet: NitroConnectionTestsStubURL withParams: nil headers: nil delegate: self];
+    [TNTHttpConnection unmanagedGet: NitroConnectionTestsStubURL withParams: nil headers: nil onDidStart: nil onSuccess: nil onError: nil];
+}
+
+-( void )test_get_unmanaged_methods_connections_are_deallocated_when_scope_is_left
+{
+    __weak TNTHttpConnection *weakConnection;
+    
+    @autoreleasepool
+    {
+        TNTHttpConnection *get = [TNTHttpConnection unmanagedGet: NitroConnectionTestsStubURL delegate: nil];
+        weakConnection = get;
+    };
+    XCTAssertNil( weakConnection );
+    
+    @autoreleasepool
+    {
+        TNTHttpConnection *get = [TNTHttpConnection unmanagedGet: NitroConnectionTestsStubURL onDidStart: nil onSuccess: nil onError: nil];
+        weakConnection = get;
+    };
+    XCTAssertNil( weakConnection );
+    
+    @autoreleasepool
+    {
+        TNTHttpConnection *get = [TNTHttpConnection unmanagedGet: NitroConnectionTestsStubURL withParams: nil delegate: nil];
+        weakConnection = get;
+    };
+    XCTAssertNil( weakConnection );
+    
+    @autoreleasepool
+    {
+        TNTHttpConnection *get = [TNTHttpConnection unmanagedGet: NitroConnectionTestsStubURL withParams: nil onDidStart: nil onSuccess: nil onError: nil];
+        weakConnection = get;
+    };
+    XCTAssertNil( weakConnection );
+    
+    @autoreleasepool
+    {
+        TNTHttpConnection *get = [TNTHttpConnection unmanagedGet: NitroConnectionTestsStubURL withParams: nil headers: nil delegate: nil];
+        weakConnection = get;
+    };
+    XCTAssertNil( weakConnection );
+    
+    @autoreleasepool
+    {
+        TNTHttpConnection *get = [TNTHttpConnection unmanagedGet: NitroConnectionTestsStubURL withParams: nil headers: nil onDidStart: nil onSuccess: nil onError: nil];
+        weakConnection = get;
+    };
+    XCTAssertNil( weakConnection );
 }
 
 -( void )test_get_methods_use_http_get
@@ -166,57 +223,70 @@ static NSString * const NitroConnectionTestsStubErrorURL = @"http://error.nitroc
 
 -( void )test_get_calls_delegate_on_start
 {
-    [self runAsyncCode: ^{ connection = [TNTHttpConnection get: NitroConnectionTestsStubURL delegate: self]; }
-   andWaitForCondition: ^{ return delegateDidStartCalled; }];
+    [self waitForAsyncCode: ^{
+        connection = [TNTHttpConnection get: NitroConnectionTestsStubURL delegate: self];
+    }];
     
     XCTAssertTrue( delegateDidStartCalled );
 }
 
 -( void )test_get_calls_delegate_on_success
 {
-    [self runAsyncCode: ^{ connection = [TNTHttpConnection get: NitroConnectionTestsStubURL delegate: self]; }
-   andWaitForCondition: ^{ return delegateOnSuccessCalled; }];
+    [self waitForAsyncCode: ^{
+        connection = [TNTHttpConnection get: NitroConnectionTestsStubURL delegate: self];
+    }];
     
     XCTAssertTrue( delegateOnSuccessCalled );
 }
 
 -( void )test_get_calls_delegate_on_error
 {
-    [self runAsyncCode: ^{ connection = [TNTHttpConnection get: NitroConnectionTestsStubErrorURL delegate: self]; }
-   andWaitForCondition: ^{ return delegateOnErrorCalled; }];
+    [self waitForAsyncCode: ^{
+        connection = [TNTHttpConnection get: NitroConnectionTestsStubErrorURL delegate: self];
+    }];
     
     XCTAssertTrue( delegateOnErrorCalled );
 }
 
 -( void )test_get_calls_did_start_block_on_start
 {
-    [self runAsyncCode: ^{ connection = [TNTHttpConnection get: NitroConnectionTestsStubURL
-                                                    onDidStart: ^{ didStartBlockRan = YES; }
-                                                     onSuccess: nil
-                                                       onError: nil]; }
-   andWaitForCondition: ^{ return didStartBlockRan; }];
+    [self waitForAsyncCode: ^{
+        connection = [TNTHttpConnection get: NitroConnectionTestsStubURL
+                                 onDidStart: ^{ didStartBlockRan = YES;
+                                                [self finishedAsyncOperation]; }
+                                  onSuccess: nil
+                                    onError: nil];
+    }];
     
     XCTAssertTrue( didStartBlockRan );
 }
 
 -( void )test_get_calls_success_block_on_success
 {
-    [self runAsyncCode: ^{ connection = [TNTHttpConnection get: NitroConnectionTestsStubURL
-                                                    onDidStart: nil
-                                                     onSuccess: ^( NSHTTPURLResponse *response, NSData *data ) { onSuccessBlockRan = YES; }
-                                                       onError: nil]; }
-   andWaitForCondition: ^{ return onSuccessBlockRan; }];
+    [self waitForAsyncCode: ^{
+        connection = [TNTHttpConnection get: NitroConnectionTestsStubURL
+                                 onDidStart: nil
+                                  onSuccess: ^( NSHTTPURLResponse *response, NSData *data ) {
+                                      onSuccessBlockRan = YES;
+                                      [self finishedAsyncOperation];
+                                    }
+                                    onError: nil];
+    }];
     
     XCTAssertTrue( onSuccessBlockRan );
 }
 
 -( void )test_get_calls_error_block_on_error
 {
-    [self runAsyncCode: ^{ connection = [TNTHttpConnection get: NitroConnectionTestsStubErrorURL
+    [self waitForAsyncCode: ^{
+        connection = [TNTHttpConnection get: NitroConnectionTestsStubErrorURL
                                                     onDidStart: nil
                                                      onSuccess: nil
-                                                       onError: ^( NSError *error ) { onErrorBlockRan = YES; }]; }
-   andWaitForCondition: ^{ return onErrorBlockRan; }];
+                                                            onError: ^( NSError *error ) {
+                                                                onErrorBlockRan = YES;
+                                                                [self finishedAsyncOperation];
+                                                            }];
+    }];
     
     XCTAssertTrue( onErrorBlockRan );
 }
@@ -233,6 +303,65 @@ static NSString * const NitroConnectionTestsStubErrorURL = @"http://error.nitroc
     
     [TNTHttpConnection head: NitroConnectionTestsStubURL withParams: nil headers: nil delegate: self];
     [TNTHttpConnection head: NitroConnectionTestsStubURL withParams: nil headers: nil onDidStart: nil onSuccess: nil onError: nil];
+}
+
+-( void )test_head_unmanaged_methods_compile
+{
+    [TNTHttpConnection unmanagedHead: NitroConnectionTestsStubURL delegate: nil];
+    [TNTHttpConnection unmanagedHead: NitroConnectionTestsStubURL onDidStart: nil onSuccess: nil onError: nil];
+    
+    [TNTHttpConnection unmanagedHead: NitroConnectionTestsStubURL withParams: nil delegate: nil];
+    [TNTHttpConnection unmanagedHead: NitroConnectionTestsStubURL withParams: nil onDidStart: nil onSuccess: nil onError: nil];
+    
+    [TNTHttpConnection unmanagedHead: NitroConnectionTestsStubURL withParams: nil headers: nil delegate: nil];
+    [TNTHttpConnection unmanagedHead: NitroConnectionTestsStubURL withParams: nil headers: nil onDidStart: nil onSuccess: nil onError: nil];
+}
+
+-( void )test_head_unmanaged_methods_connections_are_deallocated_when_scope_is_left
+{
+    __weak TNTHttpConnection *weakConnection;
+    
+    @autoreleasepool
+    {
+        TNTHttpConnection *head = [TNTHttpConnection unmanagedHead: NitroConnectionTestsStubURL delegate: nil];
+        weakConnection = head;
+    };
+    XCTAssertNil( weakConnection );
+    
+    @autoreleasepool
+    {
+        TNTHttpConnection *head = [TNTHttpConnection unmanagedHead: NitroConnectionTestsStubURL onDidStart: nil onSuccess: nil onError: nil];
+        weakConnection = head;
+    };
+    XCTAssertNil( weakConnection );
+    
+    @autoreleasepool
+    {
+        TNTHttpConnection *head = [TNTHttpConnection unmanagedHead: NitroConnectionTestsStubURL withParams: nil delegate: nil];
+        weakConnection = head;
+    };
+    XCTAssertNil( weakConnection );
+    
+    @autoreleasepool
+    {
+        TNTHttpConnection *head = [TNTHttpConnection unmanagedHead: NitroConnectionTestsStubURL withParams: nil onDidStart: nil onSuccess: nil onError: nil];
+        weakConnection = head;
+    };
+    XCTAssertNil( weakConnection );
+    
+    @autoreleasepool
+    {
+        TNTHttpConnection *head = [TNTHttpConnection unmanagedHead: NitroConnectionTestsStubURL withParams: nil headers: nil delegate: nil];
+        weakConnection = head;
+    };
+    XCTAssertNil( weakConnection );
+    
+    @autoreleasepool
+    {
+        TNTHttpConnection *head = [TNTHttpConnection unmanagedHead: NitroConnectionTestsStubURL withParams: nil headers: nil onDidStart: nil onSuccess: nil onError: nil];
+        weakConnection = head;
+    };
+    XCTAssertNil( weakConnection );
 }
 
 -( void )test_head_methods_use_http_head
@@ -286,57 +415,70 @@ static NSString * const NitroConnectionTestsStubErrorURL = @"http://error.nitroc
 
 -( void )test_head_calls_delegate_on_start
 {
-    [self runAsyncCode: ^{ connection = [TNTHttpConnection head: NitroConnectionTestsStubURL delegate: self]; }
-   andWaitForCondition: ^{ return delegateDidStartCalled; }];
+    [self waitForAsyncCode: ^{
+        connection = [TNTHttpConnection head: NitroConnectionTestsStubURL delegate: self];
+    }];
     
     XCTAssertTrue( delegateDidStartCalled );
 }
 
 -( void )test_head_calls_delegate_on_success
 {
-    [self runAsyncCode: ^{ connection = [TNTHttpConnection head: NitroConnectionTestsStubURL delegate: self]; }
-   andWaitForCondition: ^{ return delegateOnSuccessCalled; }];
-    
+    [self waitForAsyncCode: ^{
+        connection = [TNTHttpConnection head: NitroConnectionTestsStubURL delegate: self];
+    }];
+
     XCTAssertTrue( delegateOnSuccessCalled );
 }
 
 -( void )test_head_calls_delegate_on_error
 {
-    [self runAsyncCode: ^{ connection = [TNTHttpConnection head: NitroConnectionTestsStubErrorURL delegate: self]; }
-   andWaitForCondition: ^{ return delegateOnErrorCalled; }];
+    [self waitForAsyncCode: ^{
+        connection = [TNTHttpConnection head: NitroConnectionTestsStubErrorURL delegate: self];
+    }];
     
     XCTAssertTrue( delegateOnErrorCalled );
 }
 
 -( void )test_head_calls_did_start_block_on_start
 {
-    [self runAsyncCode: ^{ connection = [TNTHttpConnection head: NitroConnectionTestsStubURL
-                                                    onDidStart: ^{ didStartBlockRan = YES; }
-                                                     onSuccess: nil
-                                                       onError: nil]; }
-   andWaitForCondition: ^{ return didStartBlockRan; }];
+    [self waitForAsyncCode: ^{
+        connection = [TNTHttpConnection head: NitroConnectionTestsStubURL
+                                  onDidStart: ^{ didStartBlockRan = YES;
+                                                 [self finishedAsyncOperation]; }
+                                   onSuccess: nil
+                                     onError: nil];
+    }];
     
     XCTAssertTrue( didStartBlockRan );
 }
 
 -( void )test_head_calls_success_block_on_success
 {
-    [self runAsyncCode: ^{ connection = [TNTHttpConnection head: NitroConnectionTestsStubURL
-                                                    onDidStart: nil
-                                                     onSuccess: ^( NSHTTPURLResponse *response, NSData *data ) { onSuccessBlockRan = YES; }
-                                                       onError: nil]; }
-   andWaitForCondition: ^{ return onSuccessBlockRan; }];
+    [self waitForAsyncCode: ^{
+        connection = [TNTHttpConnection head: NitroConnectionTestsStubURL
+                                  onDidStart: nil
+                                   onSuccess: ^( NSHTTPURLResponse *response, NSData *data ) {
+                                       onSuccessBlockRan = YES;
+                                       [self finishedAsyncOperation];
+                                     }
+                                     onError: nil];
+    }];
     
     XCTAssertTrue( onSuccessBlockRan );
 }
 
 -( void )test_head_calls_error_block_on_error
 {
-    [self runAsyncCode: ^{ connection = [TNTHttpConnection head: NitroConnectionTestsStubErrorURL
-                                                    onDidStart: nil
-                                                     onSuccess: nil
-                                                       onError: ^( NSError *error ) { onErrorBlockRan = YES; }]; }
-   andWaitForCondition: ^{ return onErrorBlockRan; }];
+    [self waitForAsyncCode: ^{
+        connection = [TNTHttpConnection head: NitroConnectionTestsStubErrorURL
+                                  onDidStart: nil
+                                   onSuccess: nil
+                                     onError: ^( NSError *error ) {
+                                         onErrorBlockRan = YES;
+                                         [self  finishedAsyncOperation];
+                                     }];
+    }];
     
     XCTAssertTrue( onErrorBlockRan );
 }
@@ -353,6 +495,65 @@ static NSString * const NitroConnectionTestsStubErrorURL = @"http://error.nitroc
     
     [TNTHttpConnection delete: NitroConnectionTestsStubURL withParams: nil headers: nil delegate: self];
     [TNTHttpConnection delete: NitroConnectionTestsStubURL withParams: nil headers: nil onDidStart: nil onSuccess: nil onError: nil];
+}
+
+-( void )test_delete_unmanaged_methods_compile
+{
+    [TNTHttpConnection unmanagedDelete: NitroConnectionTestsStubURL delegate: nil];
+    [TNTHttpConnection unmanagedDelete: NitroConnectionTestsStubURL onDidStart: nil onSuccess: nil onError: nil];
+    
+    [TNTHttpConnection unmanagedDelete: NitroConnectionTestsStubURL withParams: nil delegate: self];
+    [TNTHttpConnection unmanagedDelete: NitroConnectionTestsStubURL withParams: nil onDidStart: nil onSuccess: nil onError: nil];
+    
+    [TNTHttpConnection unmanagedDelete: NitroConnectionTestsStubURL withParams: nil headers: nil delegate: self];
+    [TNTHttpConnection unmanagedDelete: NitroConnectionTestsStubURL withParams: nil headers: nil onDidStart: nil onSuccess: nil onError: nil];
+}
+
+-( void )test_delete_unmanaged_methods_connections_are_deallocated_when_scope_is_left
+{
+    __weak TNTHttpConnection *weakConnection;
+    
+    @autoreleasepool
+    {
+        TNTHttpConnection *delete = [TNTHttpConnection unmanagedDelete: NitroConnectionTestsStubURL delegate: nil];
+        weakConnection = delete;
+    };
+    XCTAssertNil( weakConnection );
+    
+    @autoreleasepool
+    {
+        TNTHttpConnection *delete = [TNTHttpConnection unmanagedDelete: NitroConnectionTestsStubURL onDidStart: nil onSuccess: nil onError: nil];
+        weakConnection = delete;
+    };
+    XCTAssertNil( weakConnection );
+    
+    @autoreleasepool
+    {
+        TNTHttpConnection *delete = [TNTHttpConnection unmanagedDelete: NitroConnectionTestsStubURL withParams: nil delegate: self];
+        weakConnection = delete;
+    };
+    XCTAssertNil( weakConnection );
+    
+    @autoreleasepool
+    {
+        TNTHttpConnection *delete = [TNTHttpConnection unmanagedDelete: NitroConnectionTestsStubURL withParams: nil onDidStart: nil onSuccess: nil onError: nil];
+        weakConnection = delete;
+    };
+    XCTAssertNil( weakConnection );
+    
+    @autoreleasepool
+    {
+        TNTHttpConnection *delete = [TNTHttpConnection unmanagedDelete: NitroConnectionTestsStubURL withParams: nil headers: nil delegate: self];
+        weakConnection = delete;
+    };
+    XCTAssertNil( weakConnection );
+    
+    @autoreleasepool
+    {
+        TNTHttpConnection *delete = [TNTHttpConnection unmanagedDelete: NitroConnectionTestsStubURL withParams: nil headers: nil onDidStart: nil onSuccess: nil onError: nil];
+        weakConnection = delete;
+    };
+    XCTAssertNil( weakConnection );
 }
 
 -( void )test_delete_methods_use_http_delete
@@ -406,57 +607,72 @@ static NSString * const NitroConnectionTestsStubErrorURL = @"http://error.nitroc
 
 -( void )test_delete_calls_delegate_on_start
 {
-    [self runAsyncCode: ^{ connection = [TNTHttpConnection delete: NitroConnectionTestsStubURL delegate: self]; }
-   andWaitForCondition: ^{ return delegateDidStartCalled; }];
+    [self waitForAsyncCode: ^{
+        connection = [TNTHttpConnection delete: NitroConnectionTestsStubURL delegate: self];
+    }];
     
     XCTAssertTrue( delegateDidStartCalled );
 }
 
 -( void )test_delete_calls_delegate_on_success
 {
-    [self runAsyncCode: ^{ connection = [TNTHttpConnection delete: NitroConnectionTestsStubURL delegate: self]; }
-   andWaitForCondition: ^{ return delegateOnSuccessCalled; }];
+    [self waitForAsyncCode: ^{
+        connection = [TNTHttpConnection delete: NitroConnectionTestsStubURL delegate: self];
+    }];
     
     XCTAssertTrue( delegateOnSuccessCalled );
 }
 
 -( void )test_delete_calls_delegate_on_error
 {
-    [self runAsyncCode: ^{ connection = [TNTHttpConnection delete: NitroConnectionTestsStubErrorURL delegate: self]; }
-   andWaitForCondition: ^{ return delegateOnErrorCalled; }];
+    [self waitForAsyncCode: ^{
+        connection = [TNTHttpConnection delete: NitroConnectionTestsStubErrorURL delegate: self];
+    }];
     
     XCTAssertTrue( delegateOnErrorCalled );
 }
 
 -( void )test_delete_calls_did_start_block_on_start
 {
-    [self runAsyncCode: ^{ connection = [TNTHttpConnection delete: NitroConnectionTestsStubURL
-                                                     onDidStart: ^{ didStartBlockRan = YES; }
-                                                      onSuccess: nil
-                                                        onError: nil]; }
-   andWaitForCondition: ^{ return didStartBlockRan; }];
+    [self waitForAsyncCode: ^{
+        connection = [TNTHttpConnection delete: NitroConnectionTestsStubURL
+                                    onDidStart: ^{ didStartBlockRan = YES;
+                                                   [self finishedAsyncOperation]; }
+                                     onSuccess: nil
+                                       onError: nil];
+        
+    }];
     
     XCTAssertTrue( didStartBlockRan );
 }
 
 -( void )test_delete_calls_success_block_on_success
 {
-    [self runAsyncCode: ^{ connection = [TNTHttpConnection delete: NitroConnectionTestsStubURL
-                                                     onDidStart: nil
-                                                      onSuccess: ^( NSHTTPURLResponse *response, NSData *data ) { onSuccessBlockRan = YES; }
-                                                        onError: nil]; }
-   andWaitForCondition: ^{ return onSuccessBlockRan; }];
+    [self waitForAsyncCode: ^{
+        connection = [TNTHttpConnection delete: NitroConnectionTestsStubURL
+                                    onDidStart: nil
+                                     onSuccess: ^( NSHTTPURLResponse *response, NSData *data ) {
+                                         onSuccessBlockRan = YES;
+                                         [self finishedAsyncOperation];
+                                       }
+                                       onError: nil];
+
+    }];
     
     XCTAssertTrue( onSuccessBlockRan );
 }
 
 -( void )test_delete_calls_error_block_on_error
 {
-    [self runAsyncCode: ^{ connection = [TNTHttpConnection delete: NitroConnectionTestsStubErrorURL
-                                                     onDidStart: nil
-                                                      onSuccess: nil
-                                                        onError: ^( NSError *error ) { onErrorBlockRan = YES; }]; }
-   andWaitForCondition: ^{ return onErrorBlockRan; }];
+    [self waitForAsyncCode: ^{
+        connection = [TNTHttpConnection delete: NitroConnectionTestsStubErrorURL
+                                    onDidStart: nil
+                                     onSuccess: nil
+                                       onError: ^( NSError *error ) {
+                                           onErrorBlockRan = YES;
+                                           [self finishedAsyncOperation];
+                                       }];
+    }];
     
     XCTAssertTrue( onErrorBlockRan );
 }
@@ -473,6 +689,65 @@ static NSString * const NitroConnectionTestsStubErrorURL = @"http://error.nitroc
     
     [TNTHttpConnection post: NitroConnectionTestsStubURL withParams: nil headers: nil delegate: self];
     [TNTHttpConnection post: NitroConnectionTestsStubURL withParams: nil headers: nil onDidStart: nil onSuccess: nil onError: nil];
+}
+
+-( void )test_post_unmanaged_methods_compile
+{
+    [TNTHttpConnection unmanagedPost: NitroConnectionTestsStubURL delegate: nil];
+    [TNTHttpConnection unmanagedPost: NitroConnectionTestsStubURL onDidStart: nil onSuccess: nil onError: nil];
+    
+    [TNTHttpConnection unmanagedPost: NitroConnectionTestsStubURL withParams: nil delegate: self];
+    [TNTHttpConnection unmanagedPost: NitroConnectionTestsStubURL withParams: nil onDidStart: nil onSuccess: nil onError: nil];
+    
+    [TNTHttpConnection unmanagedPost: NitroConnectionTestsStubURL withParams: nil headers: nil delegate: self];
+    [TNTHttpConnection unmanagedPost: NitroConnectionTestsStubURL withParams: nil headers: nil onDidStart: nil onSuccess: nil onError: nil];
+}
+
+-( void )test_post_unmanaged_methods_connections_are_deallocated_when_scope_is_left
+{
+    __weak TNTHttpConnection *weakConnection;
+    
+    @autoreleasepool
+    {
+        TNTHttpConnection *post = [TNTHttpConnection unmanagedPost: NitroConnectionTestsStubURL delegate: nil];
+        weakConnection = post;
+    };
+    XCTAssertNil( weakConnection );
+    
+    @autoreleasepool
+    {
+        TNTHttpConnection *post = [TNTHttpConnection unmanagedPost: NitroConnectionTestsStubURL onDidStart: nil onSuccess: nil onError: nil];
+        weakConnection = post;
+    };
+    XCTAssertNil( weakConnection );
+    
+    @autoreleasepool
+    {
+        TNTHttpConnection *post = [TNTHttpConnection unmanagedPost: NitroConnectionTestsStubURL withParams: nil delegate: nil];
+        weakConnection = post;
+    };
+    XCTAssertNil( weakConnection );
+    
+    @autoreleasepool
+    {
+        TNTHttpConnection *post = [TNTHttpConnection unmanagedPost: NitroConnectionTestsStubURL withParams: nil onDidStart: nil onSuccess: nil onError: nil];
+        weakConnection = post;
+    };
+    XCTAssertNil( weakConnection );
+    
+    @autoreleasepool
+    {
+        TNTHttpConnection *post = [TNTHttpConnection unmanagedPost: NitroConnectionTestsStubURL withParams: nil headers: nil delegate: nil];
+        weakConnection = post;
+    };
+    XCTAssertNil( weakConnection );
+    
+    @autoreleasepool
+    {
+        TNTHttpConnection *post = [TNTHttpConnection unmanagedPost: NitroConnectionTestsStubURL withParams: nil headers: nil onDidStart: nil onSuccess: nil onError: nil];
+        weakConnection = post;
+    };
+    XCTAssertNil( weakConnection );
 }
 
 -( void )test_post_methods_use_http_post
@@ -526,57 +801,70 @@ static NSString * const NitroConnectionTestsStubErrorURL = @"http://error.nitroc
 
 -( void )test_post_calls_delegate_on_start
 {
-    [self runAsyncCode: ^{ connection = [TNTHttpConnection post: NitroConnectionTestsStubURL delegate: self]; }
-   andWaitForCondition: ^{ return delegateDidStartCalled; }];
-    
+    [self waitForAsyncCode: ^{
+        connection = [TNTHttpConnection post: NitroConnectionTestsStubURL delegate: self];
+    }];
+
     XCTAssertTrue( delegateDidStartCalled );
 }
 
 -( void )test_post_calls_delegate_on_success
 {
-    [self runAsyncCode: ^{ connection = [TNTHttpConnection post: NitroConnectionTestsStubURL delegate: self]; }
-   andWaitForCondition: ^{ return delegateOnSuccessCalled; }];
-    
+    [self waitForAsyncCode: ^{
+        connection = [TNTHttpConnection post: NitroConnectionTestsStubURL delegate: self];
+    }];
+
     XCTAssertTrue( delegateOnSuccessCalled );
 }
 
 -( void )test_post_calls_delegate_on_error
 {
-    [self runAsyncCode: ^{ connection = [TNTHttpConnection post: NitroConnectionTestsStubErrorURL delegate: self]; }
-   andWaitForCondition: ^{ return delegateOnErrorCalled; }];
-    
+    [self waitForAsyncCode: ^{
+        connection = [TNTHttpConnection post: NitroConnectionTestsStubErrorURL delegate: self];
+    }];
+
     XCTAssertTrue( delegateOnErrorCalled );
 }
 
 -( void )test_post_calls_did_start_block_on_start
 {
-    [self runAsyncCode: ^{ connection = [TNTHttpConnection post: NitroConnectionTestsStubURL
-                                                       onDidStart: ^{ didStartBlockRan = YES; }
-                                                        onSuccess: nil
-                                                          onError: nil]; }
-   andWaitForCondition: ^{ return didStartBlockRan; }];
-    
+    [self waitForAsyncCode: ^{
+        connection = [TNTHttpConnection post: NitroConnectionTestsStubURL
+                                  onDidStart: ^{ didStartBlockRan = YES;
+                                                 [self finishedAsyncOperation]; }
+                                   onSuccess: nil
+                                     onError: nil];
+    }];
+
     XCTAssertTrue( didStartBlockRan );
 }
 
 -( void )test_post_calls_success_block_on_success
 {
-    [self runAsyncCode: ^{ connection = [TNTHttpConnection post: NitroConnectionTestsStubURL
-                                                       onDidStart: nil
-                                                        onSuccess: ^( NSHTTPURLResponse *response, NSData *data ) { onSuccessBlockRan = YES; }
-                                                          onError: nil]; }
-   andWaitForCondition: ^{ return onSuccessBlockRan; }];
+    [self waitForAsyncCode: ^{
+        connection = [TNTHttpConnection post: NitroConnectionTestsStubURL
+                                  onDidStart: nil
+                                   onSuccess: ^( NSHTTPURLResponse *response, NSData *data ) {
+                                       onSuccessBlockRan = YES;
+                                       [self finishedAsyncOperation];
+                                     }
+                                     onError: nil];
+    }];
     
     XCTAssertTrue( onSuccessBlockRan );
 }
 
 -( void )test_post_calls_error_block_on_error
 {
-    [self runAsyncCode: ^{ connection = [TNTHttpConnection post: NitroConnectionTestsStubErrorURL
+    [self waitForAsyncCode: ^{
+        connection = [TNTHttpConnection post: NitroConnectionTestsStubErrorURL
                                                        onDidStart: nil
                                                         onSuccess: nil
-                                                          onError: ^( NSError *error ) { onErrorBlockRan = YES; }]; }
-   andWaitForCondition: ^{ return onErrorBlockRan; }];
+                                                          onError: ^( NSError *error ) {
+                                                              onErrorBlockRan = YES;
+                                                              [self finishedAsyncOperation];
+                                                          }];
+    }];
     
     XCTAssertTrue( onErrorBlockRan );
 }
@@ -593,6 +881,65 @@ static NSString * const NitroConnectionTestsStubErrorURL = @"http://error.nitroc
     
     [TNTHttpConnection put: NitroConnectionTestsStubURL withParams: nil headers: nil delegate: self];
     [TNTHttpConnection put: NitroConnectionTestsStubURL withParams: nil headers: nil onDidStart: nil onSuccess: nil onError: nil];
+}
+
+-( void )test_put_unmanaged_methods_compile
+{
+    [TNTHttpConnection unmanagedPut: NitroConnectionTestsStubURL delegate: nil];
+    [TNTHttpConnection unmanagedPut: NitroConnectionTestsStubURL onDidStart: nil onSuccess: nil onError: nil];
+    
+    [TNTHttpConnection unmanagedPut: NitroConnectionTestsStubURL withParams: nil delegate: self];
+    [TNTHttpConnection unmanagedPut: NitroConnectionTestsStubURL withParams: nil onDidStart: nil onSuccess: nil onError: nil];
+    
+    [TNTHttpConnection unmanagedPut: NitroConnectionTestsStubURL withParams: nil headers: nil delegate: self];
+    [TNTHttpConnection unmanagedPut: NitroConnectionTestsStubURL withParams: nil headers: nil onDidStart: nil onSuccess: nil onError: nil];
+}
+
+-( void )test_put_unmanaged_methods_connections_are_deallocated_when_scope_is_left
+{
+    __weak TNTHttpConnection *weakConnection;
+    
+    @autoreleasepool
+    {
+        TNTHttpConnection *put = [TNTHttpConnection unmanagedPut: NitroConnectionTestsStubURL delegate: nil];
+        weakConnection = put;
+    };
+    XCTAssertNil( weakConnection );
+    
+    @autoreleasepool
+    {
+        TNTHttpConnection *put = [TNTHttpConnection unmanagedPut: NitroConnectionTestsStubURL onDidStart: nil onSuccess: nil onError: nil];
+        weakConnection = put;
+    };
+    XCTAssertNil( weakConnection );
+    
+    @autoreleasepool
+    {
+        TNTHttpConnection *put = [TNTHttpConnection unmanagedPut: NitroConnectionTestsStubURL withParams: nil delegate: nil];
+        weakConnection = put;
+    };
+    XCTAssertNil( weakConnection );
+    
+    @autoreleasepool
+    {
+        TNTHttpConnection *put = [TNTHttpConnection unmanagedPut: NitroConnectionTestsStubURL withParams: nil onDidStart: nil onSuccess: nil onError: nil];
+        weakConnection = put;
+    };
+    XCTAssertNil( weakConnection );
+    
+    @autoreleasepool
+    {
+        TNTHttpConnection *put = [TNTHttpConnection unmanagedPut: NitroConnectionTestsStubURL withParams: nil headers: nil delegate: nil];
+        weakConnection = put;
+    };
+    XCTAssertNil( weakConnection );
+    
+    @autoreleasepool
+    {
+        TNTHttpConnection *put = [TNTHttpConnection unmanagedPut: NitroConnectionTestsStubURL withParams: nil headers: nil onDidStart: nil onSuccess: nil onError: nil];
+        weakConnection = put;
+    };
+    XCTAssertNil( weakConnection );
 }
 
 -( void )test_put_methods_use_http_put
@@ -646,57 +993,69 @@ static NSString * const NitroConnectionTestsStubErrorURL = @"http://error.nitroc
 
 -( void )test_put_calls_delegate_on_start
 {
-    [self runAsyncCode: ^{ connection = [TNTHttpConnection put: NitroConnectionTestsStubURL delegate: self]; }
-   andWaitForCondition: ^{ return delegateDidStartCalled; }];
+    [self waitForAsyncCode: ^{
+        connection = [TNTHttpConnection put: NitroConnectionTestsStubURL delegate: self];
+    }];
     
     XCTAssertTrue( delegateDidStartCalled );
 }
 
 -( void )test_put_calls_delegate_on_success
 {
-    [self runAsyncCode: ^{ connection = [TNTHttpConnection put: NitroConnectionTestsStubURL delegate: self]; }
-   andWaitForCondition: ^{ return delegateOnSuccessCalled; }];
+    [self waitForAsyncCode: ^{
+        connection = [TNTHttpConnection put: NitroConnectionTestsStubURL delegate: self];
+    }];
     
     XCTAssertTrue( delegateOnSuccessCalled );
 }
 
 -( void )test_put_calls_delegate_on_error
 {
-    [self runAsyncCode: ^{ connection = [TNTHttpConnection put: NitroConnectionTestsStubErrorURL delegate: self]; }
-   andWaitForCondition: ^{ return delegateOnErrorCalled; }];
+    [self waitForAsyncCode: ^{
+        connection = [TNTHttpConnection put: NitroConnectionTestsStubErrorURL delegate: self];
+    }];
     
     XCTAssertTrue( delegateOnErrorCalled );
 }
 
 -( void )test_put_calls_did_start_block_on_start
 {
-    [self runAsyncCode: ^{ connection = [TNTHttpConnection put: NitroConnectionTestsStubURL
-                                                     onDidStart: ^{ didStartBlockRan = YES; }
-                                                      onSuccess: nil
-                                                        onError: nil]; }
-   andWaitForCondition: ^{ return didStartBlockRan; }];
+    [self waitForAsyncCode: ^{
+        connection = [TNTHttpConnection put: NitroConnectionTestsStubURL
+                                 onDidStart: ^{ didStartBlockRan = YES;
+                                                [self finishedAsyncOperation]; }
+                                  onSuccess: nil
+                                    onError: nil];
+    }];
     
     XCTAssertTrue( didStartBlockRan );
 }
 
 -( void )test_put_calls_success_block_on_success
 {
-    [self runAsyncCode: ^{ connection = [TNTHttpConnection put: NitroConnectionTestsStubURL
+    [self waitForAsyncCode: ^{
+        connection = [TNTHttpConnection put: NitroConnectionTestsStubURL
                                                      onDidStart: nil
-                                                      onSuccess: ^( NSHTTPURLResponse *response, NSData *data ) { onSuccessBlockRan = YES; }
-                                                        onError: nil]; }
-   andWaitForCondition: ^{ return onSuccessBlockRan; }];
+                                                      onSuccess: ^( NSHTTPURLResponse *response, NSData *data ) {
+                                                          onSuccessBlockRan = YES;
+                                                          [self finishedAsyncOperation];
+                                                        }
+                                                        onError: nil];
+    }];
     
     XCTAssertTrue( onSuccessBlockRan );
 }
 
 -( void )test_put_calls_error_block_on_error
 {
-    [self runAsyncCode: ^{ connection = [TNTHttpConnection put: NitroConnectionTestsStubErrorURL
+    [self waitForAsyncCode: ^{ connection = [TNTHttpConnection put: NitroConnectionTestsStubErrorURL
                                                      onDidStart: nil
                                                       onSuccess: nil
-                                                        onError: ^( NSError *error ) { onErrorBlockRan = YES; }]; }
-   andWaitForCondition: ^{ return onErrorBlockRan; }];
+                                                        onError: ^( NSError *error ) {
+                                                            onErrorBlockRan = YES;
+                                                            [self finishedAsyncOperation];
+                                                        }];
+    }];
     
     XCTAssertTrue( onErrorBlockRan );
 }
@@ -713,6 +1072,65 @@ static NSString * const NitroConnectionTestsStubErrorURL = @"http://error.nitroc
     
     [TNTHttpConnection patch: NitroConnectionTestsStubURL withParams: nil headers: nil delegate: self];
     [TNTHttpConnection patch: NitroConnectionTestsStubURL withParams: nil headers: nil onDidStart: nil onSuccess: nil onError: nil];
+}
+
+-( void )test_patch_unmanaged_methods_compile
+{
+    [TNTHttpConnection unmanagedPatch: NitroConnectionTestsStubURL delegate: nil];
+    [TNTHttpConnection unmanagedPatch: NitroConnectionTestsStubURL onDidStart: nil onSuccess: nil onError: nil];
+    
+    [TNTHttpConnection unmanagedPatch: NitroConnectionTestsStubURL withParams: nil delegate: self];
+    [TNTHttpConnection unmanagedPatch: NitroConnectionTestsStubURL withParams: nil onDidStart: nil onSuccess: nil onError: nil];
+    
+    [TNTHttpConnection unmanagedPatch: NitroConnectionTestsStubURL withParams: nil headers: nil delegate: self];
+    [TNTHttpConnection unmanagedPatch: NitroConnectionTestsStubURL withParams: nil headers: nil onDidStart: nil onSuccess: nil onError: nil];
+}
+
+-( void )test_patch_unmanaged_methods_connections_are_deallocated_when_scope_is_left
+{
+    __weak TNTHttpConnection *weakConnection;
+    
+    @autoreleasepool
+    {
+        TNTHttpConnection *patch = [TNTHttpConnection unmanagedPatch: NitroConnectionTestsStubURL delegate: nil];
+        weakConnection = patch;
+    };
+    XCTAssertNil( weakConnection );
+    
+    @autoreleasepool
+    {
+        TNTHttpConnection *patch = [TNTHttpConnection unmanagedPatch: NitroConnectionTestsStubURL onDidStart: nil onSuccess: nil onError: nil];
+        weakConnection = patch;
+    };
+    XCTAssertNil( weakConnection );
+    
+    @autoreleasepool
+    {
+        TNTHttpConnection *patch = [TNTHttpConnection unmanagedPatch: NitroConnectionTestsStubURL withParams: nil delegate: nil];
+        weakConnection = patch;
+    };
+    XCTAssertNil( weakConnection );
+    
+    @autoreleasepool
+    {
+        TNTHttpConnection *patch = [TNTHttpConnection unmanagedPatch: NitroConnectionTestsStubURL withParams: nil onDidStart: nil onSuccess: nil onError: nil];
+        weakConnection = patch;
+    };
+    XCTAssertNil( weakConnection );
+    
+    @autoreleasepool
+    {
+        TNTHttpConnection *patch = [TNTHttpConnection unmanagedPatch: NitroConnectionTestsStubURL withParams: nil headers: nil delegate: nil];
+        weakConnection = patch;
+    };
+    XCTAssertNil( weakConnection );
+    
+    @autoreleasepool
+    {
+        TNTHttpConnection *patch = [TNTHttpConnection unmanagedPatch: NitroConnectionTestsStubURL withParams: nil headers: nil onDidStart: nil onSuccess: nil onError: nil];
+        weakConnection = patch;
+    };
+    XCTAssertNil( weakConnection );
 }
 
 -( void )test_patch_methods_use_http_patch
@@ -766,57 +1184,71 @@ static NSString * const NitroConnectionTestsStubErrorURL = @"http://error.nitroc
 
 -( void )test_patch_calls_delegate_on_start
 {
-    [self runAsyncCode: ^{ connection = [TNTHttpConnection patch: NitroConnectionTestsStubURL delegate: self]; }
-   andWaitForCondition: ^{ return delegateDidStartCalled; }];
+    [self waitForAsyncCode: ^{
+        connection = [TNTHttpConnection patch: NitroConnectionTestsStubURL delegate: self];
+    }];
     
     XCTAssertTrue( delegateDidStartCalled );
 }
 
 -( void )test_patch_calls_delegate_on_success
 {
-    [self runAsyncCode: ^{ connection = [TNTHttpConnection patch: NitroConnectionTestsStubURL delegate: self]; }
-   andWaitForCondition: ^{ return delegateOnSuccessCalled; }];
+    [self waitForAsyncCode: ^{
+        connection = [TNTHttpConnection patch: NitroConnectionTestsStubURL delegate: self];
+    }];
     
     XCTAssertTrue( delegateOnSuccessCalled );
 }
 
 -( void )test_patch_calls_delegate_on_error
 {
-    [self runAsyncCode: ^{ connection = [TNTHttpConnection patch: NitroConnectionTestsStubErrorURL delegate: self]; }
-   andWaitForCondition: ^{ return delegateOnErrorCalled; }];
+    [self waitForAsyncCode: ^{
+        connection = [TNTHttpConnection patch: NitroConnectionTestsStubErrorURL delegate: self];
+    }];
     
     XCTAssertTrue( delegateOnErrorCalled );
 }
 
 -( void )test_patch_calls_did_start_block_on_start
 {
-    [self runAsyncCode: ^{ connection = [TNTHttpConnection patch: NitroConnectionTestsStubURL
-                                                    onDidStart: ^{ didStartBlockRan = YES; }
-                                                     onSuccess: nil
-                                                       onError: nil]; }
-   andWaitForCondition: ^{ return didStartBlockRan; }];
+    [self waitForAsyncCode: ^{ connection = [TNTHttpConnection patch: NitroConnectionTestsStubURL
+                                                          onDidStart: ^{
+                                                              didStartBlockRan = YES;
+                                                              [self finishedAsyncOperation];
+                                                           }
+                                                           onSuccess: nil
+                                                             onError: nil];
+    }];
     
     XCTAssertTrue( didStartBlockRan );
 }
 
 -( void )test_patch_calls_success_block_on_success
 {
-    [self runAsyncCode: ^{ connection = [TNTHttpConnection patch: NitroConnectionTestsStubURL
+    [self waitForAsyncCode: ^{
+        connection = [TNTHttpConnection patch: NitroConnectionTestsStubURL
                                                     onDidStart: nil
-                                                     onSuccess: ^( NSHTTPURLResponse *response, NSData *data ) { onSuccessBlockRan = YES; }
-                                                       onError: nil]; }
-   andWaitForCondition: ^{ return onSuccessBlockRan; }];
+                                                     onSuccess: ^( NSHTTPURLResponse *response, NSData *data ) {
+                                                         onSuccessBlockRan = YES;
+                                                         [self finishedAsyncOperation];
+                                                       }
+                                                       onError: nil];
+    }];
     
     XCTAssertTrue( onSuccessBlockRan );
 }
 
 -( void )test_patch_calls_error_block_on_error
 {
-    [self runAsyncCode: ^{ connection = [TNTHttpConnection patch: NitroConnectionTestsStubErrorURL
-                                                    onDidStart: nil
-                                                     onSuccess: nil
-                                                       onError: ^( NSError *error ) { onErrorBlockRan = YES; }]; }
-   andWaitForCondition: ^{ return onErrorBlockRan; }];
+    [self waitForAsyncCode: ^{
+        connection = [TNTHttpConnection patch: NitroConnectionTestsStubErrorURL
+                                   onDidStart: nil
+                                    onSuccess: nil
+                                      onError: ^( NSError *error ) {
+                                          onErrorBlockRan = YES;
+                                          [self finishedAsyncOperation];
+                                      }];
+    }];
     
     XCTAssertTrue( onErrorBlockRan );
 }
@@ -831,11 +1263,13 @@ static NSString * const NitroConnectionTestsStubErrorURL = @"http://error.nitroc
 -( void )onTNTHttpConnection:( TNTHttpConnection * )connection didReceiveResponse:( NSHTTPURLResponse * )response withData:( NSData * )data
 {
     delegateOnSuccessCalled = YES;
+    [self finishedAsyncOperation];
 }
 
 -( void )onTNTHttpConnection:( TNTHttpConnection * )connection didFailWithError:( NSError * )error
 {
     delegateOnErrorCalled = YES;
+    [self finishedAsyncOperation];
 }
 
 @end

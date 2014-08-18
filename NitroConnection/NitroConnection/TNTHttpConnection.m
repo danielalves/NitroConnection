@@ -1,4 +1,4 @@
-//
+ //
 //  TNTHttpConnection.m
 //  NitroConnection
 //
@@ -14,6 +14,70 @@
 
 // Pods
 #import <NitroMisc/NTRLogging.h>
+
+#pragma mark - TNTNSURLConnectionProxy Helper Type
+
+@class TNTHttpConnection;
+
+@interface TNTNSURLConnectionProxy : NSObject< NSURLConnectionDataDelegate >
+
+@property( nonatomic, readwrite, weak )id< NSURLConnectionDataDelegate > target;
+
+@end
+
+@implementation TNTNSURLConnectionProxy
+
+#pragma mark - NSURLConnectionDelegate
+
+-( void )connectionDidFinishLoading:( NSURLConnection * )urlConnection
+{
+    if( !_target )
+        return;
+    
+    @synchronized( _target )
+    {
+        // We do not use respondsToSelector: since we know TNTHttpConnection does repond
+        [_target connectionDidFinishLoading: urlConnection];
+    }
+}
+
+-( void )connection:( NSURLConnection * )connection didReceiveData:( NSData * )data
+{
+    if( !_target )
+        return;
+    
+    @synchronized( _target )
+    {
+        // We do not use respondsToSelector: since we know TNTHttpConnection does repond
+        [_target connection: connection didReceiveData: data];
+    }
+}
+
+-( void )connection:( NSURLConnection * )connection didReceiveResponse:( NSHTTPURLResponse * )response
+{
+    if( !_target )
+        return;
+    
+    @synchronized( _target )
+    {
+        // We do not use respondsToSelector: since we know TNTHttpConnection does repond
+        [_target connection: connection didReceiveResponse: response];
+    }
+}
+
+-( void )connection:( NSURLConnection * )connection didFailWithError:( NSError * )error
+{
+    if( !_target )
+        return;
+    
+    @synchronized( _target )
+    {
+        // We do not use respondsToSelector: since we know TNTHttpConnection does repond
+        [_target connection: connection didFailWithError: error];
+    }
+}
+
+@end
 
 #pragma mark - Defines
 
@@ -36,20 +100,33 @@ const NSInteger TNTHttpConnectionErrorCodeHttpError = 1;
 
 #pragma mark - Statics
 
-static NSTimeInterval TNTHttpConnectionDefaultTimeoutInterval = DEFAULT_CONNECTION_TIMEOUT_INTERVAL_SECS;
-static NSURLRequestCachePolicy TNTHttpConnectionDefaultCachePolicy = NSURLRequestUseProtocolCachePolicy;
+static NSTimeInterval TNTHttpConnectionDefaultTimeoutInterval;
+static NSURLRequestCachePolicy TNTHttpConnectionDefaultCachePolicy;
+
+static NSMutableDictionary *managedConnections;
+
+static NSLock *defaultTimeoutIntervalLock;
+static NSLock *defaultCachePolicyLock;
+static NSLock *managedConnectionsLock;
+
+#pragma mark - Helper Types
+
+typedef void( ^TNTHttpConnectionNotificationBlock )( TNTHttpConnection *httpConnection );
 
 #pragma mark - Class Extension
 
-@interface TNTHttpConnection()< NSURLConnectionDelegate >
+@interface TNTHttpConnection()< NSURLConnectionDataDelegate >
 {
+    BOOL managedConnection;
+    NSOperationQueue *notificationQueue;
+    TNTNSURLConnectionProxy *urlConnectionProxy;
+    
+    NSURLConnection *connection;
     NSMutableData *responseDataBuffer;
     
     NSOperationQueue *callerQueue;
-    NSOperationQueue *notificationQueue;
 }
 @property( nonatomic, readwrite, assign )BOOL requestAlive;
-@property( nonatomic, readwrite, strong )NSURLConnection *connection;
 
 @property( nonatomic, readwrite, strong )NSURLRequest *lastRequest;
 @property( nonatomic, readwrite, strong )NSHTTPURLResponse *lastResponse;
@@ -65,6 +142,21 @@ static NSURLRequestCachePolicy TNTHttpConnectionDefaultCachePolicy = NSURLReques
 @implementation TNTHttpConnection
 
 #pragma mark - Ctor & Dtor
+
++( void )initialize
+{
+    if( self == [TNTHttpConnection class] )
+    {
+        TNTHttpConnectionDefaultTimeoutInterval = DEFAULT_CONNECTION_TIMEOUT_INTERVAL_SECS;
+        TNTHttpConnectionDefaultCachePolicy = NSURLRequestUseProtocolCachePolicy;
+        
+        managedConnections = [NSMutableDictionary new];
+        
+        defaultTimeoutIntervalLock = [NSLock new];
+        defaultCachePolicyLock = [NSLock new];
+        managedConnectionsLock = [NSLock new];
+    }
+}
 
 -( instancetype )init
 {
@@ -98,32 +190,17 @@ static NSURLRequestCachePolicy TNTHttpConnectionDefaultCachePolicy = NSURLReques
 
 #pragma mark - Public Methods
 
--( void )startRequest:( NSURLRequest * )request
-{
-    [self startRequest: request onDidStart: nil onSuccess: nil onError: nil];
-}
-
--( void )startRequest:( NSURLRequest * )request
-           onDidStart:( TNTHttpConnectionDidStartBlock )didStartBlock
-            onSuccess:( TNTHttpConnectionSuccessBlock )successBlock
-              onError:( TNTHttpConnectionErrorBlock )errorBlock
-{
-    self.didStartBlock = didStartBlock;
-    self.successBlock = successBlock;
-    self.errorBlock = errorBlock;
-    
-    [self makeRequest: request];
-}
-
 -( void )startRequestWithMethod:( TNTHttpMethod )httpMethod
                             url:( NSString * )url
                          params:( NSDictionary * )params
                         headers:( NSDictionary * )headers
+                        managed:( BOOL )managed
 {
     [self startRequestWithMethod: httpMethod
                              url: url
                           params: params
                          headers: headers
+                         managed: managed
                       onDidStart: nil
                        onSuccess: nil
                          onError: nil];
@@ -133,6 +210,7 @@ static NSURLRequestCachePolicy TNTHttpConnectionDefaultCachePolicy = NSURLReques
                             url:( NSString * )url
                          params:( NSDictionary * )params
                         headers:( NSDictionary * )headers
+                        managed:( BOOL )managed
                      onDidStart:( TNTHttpConnectionDidStartBlock )didStartBlock
                       onSuccess:( TNTHttpConnectionSuccessBlock )successBlock
                         onError:( TNTHttpConnectionErrorBlock )errorBlock
@@ -178,14 +256,33 @@ static NSURLRequestCachePolicy TNTHttpConnectionDefaultCachePolicy = NSURLReques
         [request addValue: [headers valueForKey: headerField] forHTTPHeaderField: headerField];
     
     [self startRequest: request
+               managed: managed
             onDidStart: didStartBlock
              onSuccess: successBlock
                onError: errorBlock];
 }
 
+-( void )startRequest:( NSURLRequest * )request managed:( BOOL )managed
+{
+    [self startRequest: request managed: managed onDidStart: nil onSuccess: nil onError: nil];
+}
+
+-( void )startRequest:( NSURLRequest * )request
+              managed:( BOOL )managed
+           onDidStart:( TNTHttpConnectionDidStartBlock )didStartBlock
+            onSuccess:( TNTHttpConnectionSuccessBlock )successBlock
+              onError:( TNTHttpConnectionErrorBlock )errorBlock
+{
+    self.didStartBlock = didStartBlock;
+    self.successBlock = successBlock;
+    self.errorBlock = errorBlock;
+    
+    [self makeRequest: request managed: managed];
+}
+
 -( void )retry
 {
-    [self makeRequest: _lastRequest];
+    [self makeRequest: _lastRequest  managed: managedConnection];
 }
 
 -( void )cancel
@@ -195,9 +292,12 @@ static NSURLRequestCachePolicy TNTHttpConnectionDefaultCachePolicy = NSURLReques
     @synchronized( self )
     {
         [notificationQueue cancelAllOperations];
-        
-        [_connection cancel];
-        _connection = nil;
+
+        [connection cancel];
+        connection = nil;
+
+        urlConnectionProxy.target = nil;
+        urlConnectionProxy = nil;
         
         self.requestAlive = NO;
         
@@ -212,35 +312,54 @@ static NSURLRequestCachePolicy TNTHttpConnectionDefaultCachePolicy = NSURLReques
         
         // We do not reset lastRequest because the user may want to retry
 //        self.lastRequest = nil;
+        
+        if( managedConnection )
+            [TNTHttpConnection stopManagingConnection: self];
     }
 }
 
 #pragma mark - Internals
 
--( void )makeRequest:( NSURLRequest * )request
+-( void )makeRequest:( NSURLRequest * )request managed:( BOOL )managed
 {
     // NSURLConnectionDelegate callbacks are delivered on a different queue from which the user
     // starts or cancels requests. That's why we need synchronization
     @synchronized( self )
     {
+        // Must cancel before changing _managed value. If we didn't, we could reach this scenario:
+        // 1st request -> managed
+        // 2nd request -> unmanaged
+        // On the 2nd request we would not unregister from management.
         [self cancel];
+        
+        managedConnection = managed;
         
         if( request )
         {
             self.lastRequest = request;
             self.lastResponse = nil;
 
-            _connection = [TNTHttpConnection createConnectionWithRequest: request delegate: self inQueue: notificationQueue];
-            responseDataBuffer = [NSMutableData dataWithCapacity: K_BYTE];
-            
             callerQueue = [NSOperationQueue currentQueue];
             if( !callerQueue )
                 callerQueue = [NSOperationQueue mainQueue];
+            
+            // We use a proxy object since NSURLConnection keeps a strong reference to its delegate (see the docs). If we used self,
+            // sometimes we would be kept from being deallocated, what would keep us from canceling the connection
+            // We also have to create the NSURLConnection delegate in the sama queue we create the NSURLConnection object
+            urlConnectionProxy = [TNTNSURLConnectionProxy new];
+            urlConnectionProxy.target = self;
+
+            connection = [TNTHttpConnection createConnectionWithRequest: request delegate: urlConnectionProxy inQueue: notificationQueue];
+
+            responseDataBuffer = [NSMutableData dataWithCapacity: K_BYTE];
+
+            if( managedConnection )
+                [TNTHttpConnection startManagingConnection: self];
 
             // We have to call 'start' before sending the did start notification. This way, if
             // the user does something crazy as startint another connection using this same object
             // inside the notification callback, we will not get into a unexpected internal state.
-            [_connection start];
+            [connection start];
             
             self.requestAlive = YES;
             [self onNotifyConnectionDidStart];
@@ -261,7 +380,7 @@ static NSURLRequestCachePolicy TNTHttpConnectionDefaultCachePolicy = NSURLReques
         {
             // This call will clean our internal state. So there is no problem if the user
             // starts another request using this same object
-            [self connection: _connection didFailWithError: error];
+            [self connection: connection didFailWithError: error];
         }
         else
         {
@@ -274,27 +393,29 @@ static NSURLRequestCachePolicy TNTHttpConnectionDefaultCachePolicy = NSURLReques
             // is released elsewhere before the notification block gets executed
              NSHTTPURLResponse *responseCopy = _lastResponse;
             
-            [self cancel];
+            // If this connection is managed, cancel will possibly release the last strong reference
+            // we have to self. Thus any code after cancel would have undefined behavior. Having a
+            // strong reference that lives only inside this scope fixes the problem.
+            TNTHttpConnection *strongSelf = self;
             
-            [self onNotifyConnectionSuccessWithResponse: responseCopy data: responseDataCopy];
+            [strongSelf cancel];
+            
+            [strongSelf onNotifyConnectionSuccessWithResponse: responseCopy data: responseDataCopy];
         }
     }
 }
 
--( void )connection:( NSURLConnection * )connection didReceiveData:( NSData * )data
+-( void )connection:( NSURLConnection * )urlConnection didReceiveData:( NSData * )data
 {
     // NSURLConnectionDelegate callbacks are delivered on a different queue from which the user
     // starts or cancels requests. That's why we need synchronization
     @synchronized( self )
     {
         [self onDidReceiveResponseData: data buffer: responseDataBuffer];
-        
-        NSString * temp = [[NSString alloc] initWithData: responseDataBuffer encoding: NSUTF8StringEncoding];
-        NTR_LOGI( @"%@", temp );
     }
 }
 
--( void )connection:( NSURLConnection * )connection didReceiveResponse:( NSHTTPURLResponse * )response
+-( void )connection:( NSURLConnection * )urlConnection didReceiveResponse:( NSHTTPURLResponse * )response
 {
     // NSURLConnectionDelegate callbacks are delivered on a different queue from which the user
     // starts or cancels requests. That's why we need synchronization
@@ -304,14 +425,19 @@ static NSURLRequestCachePolicy TNTHttpConnectionDefaultCachePolicy = NSURLReques
     }
 }
 
--( void )connection:( NSURLConnection * )connection didFailWithError:( NSError * )error
+-( void )connection:( NSURLConnection * )urlConnection didFailWithError:( NSError * )error
 {
     // NSURLConnectionDelegate callbacks are delivered on a different queue from which the user
     // starts or cancels requests. That's why we need synchronization
     @synchronized( self )
     {
-        [self cancel];
-        [self onNotifyConnectionError: error];
+        // If this connection is managed, cancel will possibly release the last strong reference
+        // we have to self. Thus any code after cancel would have undefined behavior. Having a
+        // strong reference that lives only inside this scope fixes the problem.
+        TNTHttpConnection *strongSelf = self;
+        
+        [strongSelf cancel];
+        [strongSelf onNotifyConnectionError: error];
     }
 }
 
@@ -319,65 +445,69 @@ static NSURLRequestCachePolicy TNTHttpConnectionDefaultCachePolicy = NSURLReques
 
 -( void )onNotifyConnectionDidStart
 {
-    [self onNotify: ^( __weak TNTHttpConnection *weakSelf ){
-        if( [weakSelf.delegate respondsToSelector: @selector( onTNTHttpConnectionDidStart: )] )
-            [weakSelf.delegate onTNTHttpConnectionDidStart: weakSelf];
+    [self onNotify: ^( TNTHttpConnection *httpConnection ){
         
-        if( weakSelf.didStartBlock )
-            weakSelf.didStartBlock();
+        if( [httpConnection.delegate respondsToSelector: @selector( onTNTHttpConnectionDidStart: )] )
+            [httpConnection.delegate onTNTHttpConnectionDidStart: httpConnection];
+        
+        if( httpConnection.didStartBlock )
+            httpConnection.didStartBlock();
     }];
 }
 
 -( void )onNotifyConnectionSuccessWithResponse:( NSHTTPURLResponse * )response data:( NSData * )responseData
 {
-    [self onNotify: ^( __weak TNTHttpConnection *weakSelf ){
-        if( [weakSelf.delegate respondsToSelector: @selector( onTNTHttpConnection:didReceiveResponse:withData: )] )
-            [weakSelf.delegate onTNTHttpConnection: weakSelf didReceiveResponse: response withData: responseData];
+    [self onNotify: ^( TNTHttpConnection *httpConnection ){
         
-        if( weakSelf.successBlock )
-            weakSelf.successBlock( response, responseData );
+        if( [httpConnection.delegate respondsToSelector: @selector( onTNTHttpConnection:didReceiveResponse:withData: )] )
+            [httpConnection.delegate onTNTHttpConnection: httpConnection didReceiveResponse: response withData: responseData];
+        
+        if( httpConnection.successBlock )
+            httpConnection.successBlock( response, responseData );
     }];
 }
 
 -( void )onNotifyConnectionError:( NSError* )error
 {
-    [self onNotify: ^( __weak TNTHttpConnection *weakSelf ){
-        if( [weakSelf.delegate respondsToSelector: @selector( onTNTHttpConnection:didFailWithError: )] )
-            [weakSelf.delegate onTNTHttpConnection: weakSelf didFailWithError: error];
+    [self onNotify: ^( TNTHttpConnection *httpConnection ){
+
+        if( [httpConnection.delegate respondsToSelector: @selector( onTNTHttpConnection:didFailWithError: )] )
+            [httpConnection.delegate onTNTHttpConnection: httpConnection didFailWithError: error];
         
-        if( weakSelf.errorBlock )
-            weakSelf.errorBlock( error );
+        if( httpConnection.errorBlock )
+            httpConnection.errorBlock( error );
     }];
 }
 
--( void )onNotify:( void (^)( __weak TNTHttpConnection *weakSelf ))notificationBlock
+-( void )onNotify:( TNTHttpConnectionNotificationBlock )notificationBlock
 {
     NSBlockOperation *notificationOperation = [NSBlockOperation new];
     
     __weak TNTHttpConnection *weakSelf = self;
+    __weak NSOperationQueue *weakCallerQueue = callerQueue;
     __weak NSBlockOperation *weakNotificationOperation = notificationOperation;
-    
+
     [notificationOperation addExecutionBlock: ^{
 
+        if( !weakNotificationOperation || weakNotificationOperation.isCancelled || !weakSelf )
+            return;
+        
         NSBlockOperation *processNotificationOperation = [NSBlockOperation blockOperationWithBlock: ^{
-            
-            if( !weakNotificationOperation || weakNotificationOperation.isCancelled )
+
+            if( !weakNotificationOperation || weakNotificationOperation.isCancelled || !weakSelf )
                 return;
-            
+
             // NSURLConnectionDelegate callbacks are delivered on a different queue from which the user
             // starts or cancels requests. That's why we need synchronization
             @synchronized( weakSelf )
             {
-                if( !weakSelf )
-                    return;
-
                 notificationBlock( weakSelf );
             }
         }];
         
         // waitUntilFinished MUST BE YES: this way we guarantee only one notification of this object
         // is being processed by callerQueue at any specific time
-        [callerQueue addOperations: @[ processNotificationOperation ] waitUntilFinished: YES];
+        [weakCallerQueue addOperations: @[ processNotificationOperation ] waitUntilFinished: YES];
     }];
 
     // notificationQueue is guaranteed to process only one operation per time, but callerQueue is not.
@@ -415,7 +545,7 @@ static NSURLRequestCachePolicy TNTHttpConnectionDefaultCachePolicy = NSURLReques
 
 #pragma mark - Helpers
 
-+( NSURLConnection * )createConnectionWithRequest:( NSURLRequest * )request delegate:( id )connectionDelegate inQueue:( NSOperationQueue * )queue;
++( NSURLConnection * )createConnectionWithRequest:( NSURLRequest * )request delegate:( NSObject< NSURLConnectionDelegate > * )connectionDelegate inQueue:( NSOperationQueue * )queue;
 {
 	NSURLConnection *temp = [[NSURLConnection alloc] initWithRequest: request delegate: connectionDelegate startImmediately: NO];
     [temp setDelegateQueue: queue];
@@ -424,13 +554,39 @@ static NSURLRequestCachePolicy TNTHttpConnectionDefaultCachePolicy = NSURLReques
 
 #pragma mark - Class Methods
 
++( void )startManagingConnection:( TNTHttpConnection * )connection
+{
+    if( !connection )
+        return;
+    
+    [managedConnectionsLock lock];
+
+    int address = ( int )connection;
+    managedConnections[@( address )] = connection;
+    
+    [managedConnectionsLock unlock];
+}
+
++( void )stopManagingConnection:( TNTHttpConnection * )connection
+{
+    if( !connection )
+        return;
+    
+    [managedConnectionsLock lock];
+
+    int address = ( int )connection;
+    [managedConnections removeObjectForKey: @( address )];
+
+    [managedConnectionsLock unlock];
+}
+
 +( void )setDefaultCachePolicy:( NSURLRequestCachePolicy )_cachePolicy
 {
-    // This synchronization makes TNTHttpConnectionDefaultCachePolicy attribution thread safe
-    @synchronized( self )
-    {
-        TNTHttpConnectionDefaultCachePolicy = _cachePolicy;
-    }
+    [defaultCachePolicyLock lock];
+    
+    TNTHttpConnectionDefaultCachePolicy = _cachePolicy;
+    
+    [defaultCachePolicyLock unlock];
 }
 
 +( NSURLRequestCachePolicy )defaultCachePolicy
@@ -438,19 +594,16 @@ static NSURLRequestCachePolicy TNTHttpConnectionDefaultCachePolicy = NSURLReques
     // Reads do not need to be synchronized: we will allow dirty reads. Afterall,
     // the user shouldn't change de default cache policy from different threads - this
     // operation is usually done in the application begginning.
-//    @synchronized( self )
-//    {
-        return TNTHttpConnectionDefaultCachePolicy;
-//    }
+    return TNTHttpConnectionDefaultCachePolicy;
 }
 
 +( void )setDefaultTimeoutInterval:( NSTimeInterval )timeoutInterval
 {
-    // This synchronization makes TNTHttpConnectionDefaultTimeoutInterval attribution thread safe
-    @synchronized( self )
-    {
-        TNTHttpConnectionDefaultTimeoutInterval = timeoutInterval;
-    }
+    [defaultTimeoutIntervalLock lock];
+    
+    TNTHttpConnectionDefaultTimeoutInterval = timeoutInterval;
+    
+    [defaultTimeoutIntervalLock unlock];
 }
 
 +( NSTimeInterval )defaultTimeoutInterval
@@ -458,10 +611,7 @@ static NSURLRequestCachePolicy TNTHttpConnectionDefaultCachePolicy = NSURLReques
     // Reads do not need to be synchronized: we will allow dirty reads. Afterall,
     // the user shouldn't change de default timeout from different threads - this
     // operation is usually done in the application begginning.
-//    @synchronized( self )
-//    {
-        return TNTHttpConnectionDefaultTimeoutInterval;
-//    }
+    return TNTHttpConnectionDefaultTimeoutInterval;
 }
 
 @end
