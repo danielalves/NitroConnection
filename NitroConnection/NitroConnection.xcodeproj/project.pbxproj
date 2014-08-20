@@ -7,10 +7,15 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		1239E7AC19A39BFF009449CC /* TNTHttpConnectionDeleteSyntaticSugarTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 1239E7A719A39BFF009449CC /* TNTHttpConnectionDeleteSyntaticSugarTests.m */; };
+		1239E7AD19A39BFF009449CC /* TNTHttpConnectionHeadSyntaticSugarTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 1239E7A819A39BFF009449CC /* TNTHttpConnectionHeadSyntaticSugarTests.m */; };
+		1239E7AE19A39BFF009449CC /* TNTHttpConnectionPatchSyntaticSugarTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 1239E7A919A39BFF009449CC /* TNTHttpConnectionPatchSyntaticSugarTests.m */; };
+		1239E7AF19A39BFF009449CC /* TNTHttpConnectionPostSyntaticSugarTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 1239E7AA19A39BFF009449CC /* TNTHttpConnectionPostSyntaticSugarTests.m */; };
+		1239E7B019A39BFF009449CC /* TNTHttpConnectionPutSyntaticSugarTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 1239E7AB19A39BFF009449CC /* TNTHttpConnectionPutSyntaticSugarTests.m */; };
 		123C32C419916293008627E5 /* TNTHttpConnection+SyntaticSugar.m in Sources */ = {isa = PBXBuildFile; fileRef = 123C32C319916293008627E5 /* TNTHttpConnection+SyntaticSugar.m */; };
 		123C32C7199162DC008627E5 /* NSString+URLUtils.m in Sources */ = {isa = PBXBuildFile; fileRef = 123C32C6199162DC008627E5 /* NSString+URLUtils.m */; };
 		123C32CA1992A61B008627E5 /* NSDictionary+QueryString.m in Sources */ = {isa = PBXBuildFile; fileRef = 123C32C91992A61B008627E5 /* NSDictionary+QueryString.m */; };
-		123C33101993E268008627E5 /* TNTHttpConnectionSyntaticSugarTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 123C330F1993E268008627E5 /* TNTHttpConnectionSyntaticSugarTests.m */; };
+		123C33101993E268008627E5 /* TNTHttpConnectionGetSyntaticSugarTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 123C330F1993E268008627E5 /* TNTHttpConnectionGetSyntaticSugarTests.m */; };
 		123C33131993EB09008627E5 /* TNTTestCase.m in Sources */ = {isa = PBXBuildFile; fileRef = 123C33121993EB09008627E5 /* TNTTestCase.m */; };
 		123C33151993F23C008627E5 /* libNitroConnection.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 12DB6C1C1989896200A1E571 /* libNitroConnection.a */; };
 		1293650B199A795B00C48105 /* NSStringURLUtilsTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 1293650A199A795B00C48105 /* NSStringURLUtilsTests.m */; };
@@ -51,13 +56,18 @@
 
 /* Begin PBXFileReference section */
 		09D595CB6FB84B6E98841BED /* Pods-NitroConnection.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NitroConnection.xcconfig"; path = "Pods/Pods-NitroConnection.xcconfig"; sourceTree = "<group>"; };
+		1239E7A719A39BFF009449CC /* TNTHttpConnectionDeleteSyntaticSugarTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TNTHttpConnectionDeleteSyntaticSugarTests.m; sourceTree = "<group>"; };
+		1239E7A819A39BFF009449CC /* TNTHttpConnectionHeadSyntaticSugarTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TNTHttpConnectionHeadSyntaticSugarTests.m; sourceTree = "<group>"; };
+		1239E7A919A39BFF009449CC /* TNTHttpConnectionPatchSyntaticSugarTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TNTHttpConnectionPatchSyntaticSugarTests.m; sourceTree = "<group>"; };
+		1239E7AA19A39BFF009449CC /* TNTHttpConnectionPostSyntaticSugarTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TNTHttpConnectionPostSyntaticSugarTests.m; sourceTree = "<group>"; };
+		1239E7AB19A39BFF009449CC /* TNTHttpConnectionPutSyntaticSugarTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TNTHttpConnectionPutSyntaticSugarTests.m; sourceTree = "<group>"; };
 		123C32C219916293008627E5 /* TNTHttpConnection+SyntaticSugar.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "TNTHttpConnection+SyntaticSugar.h"; sourceTree = "<group>"; };
 		123C32C319916293008627E5 /* TNTHttpConnection+SyntaticSugar.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "TNTHttpConnection+SyntaticSugar.m"; sourceTree = "<group>"; };
 		123C32C5199162DC008627E5 /* NSString+URLUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSString+URLUtils.h"; sourceTree = "<group>"; };
 		123C32C6199162DC008627E5 /* NSString+URLUtils.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSString+URLUtils.m"; sourceTree = "<group>"; };
 		123C32C81992A61B008627E5 /* NSDictionary+QueryString.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSDictionary+QueryString.h"; sourceTree = "<group>"; };
 		123C32C91992A61B008627E5 /* NSDictionary+QueryString.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSDictionary+QueryString.m"; sourceTree = "<group>"; };
-		123C330F1993E268008627E5 /* TNTHttpConnectionSyntaticSugarTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TNTHttpConnectionSyntaticSugarTests.m; sourceTree = "<group>"; };
+		123C330F1993E268008627E5 /* TNTHttpConnectionGetSyntaticSugarTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TNTHttpConnectionGetSyntaticSugarTests.m; sourceTree = "<group>"; };
 		123C33111993EB09008627E5 /* TNTTestCase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TNTTestCase.h; sourceTree = "<group>"; };
 		123C33121993EB09008627E5 /* TNTTestCase.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TNTTestCase.m; sourceTree = "<group>"; };
 		123C33141993EB65008627E5 /* TNTXCTTestMacros.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TNTXCTTestMacros.h; sourceTree = "<group>"; };
@@ -167,10 +177,15 @@
 		12DB6C351989896500A1E571 /* NitroConnectionTests */ = {
 			isa = PBXGroup;
 			children = (
+				1239E7A719A39BFF009449CC /* TNTHttpConnectionDeleteSyntaticSugarTests.m */,
+				123C330F1993E268008627E5 /* TNTHttpConnectionGetSyntaticSugarTests.m */,
+				1239E7A819A39BFF009449CC /* TNTHttpConnectionHeadSyntaticSugarTests.m */,
+				1239E7A919A39BFF009449CC /* TNTHttpConnectionPatchSyntaticSugarTests.m */,
+				1239E7AA19A39BFF009449CC /* TNTHttpConnectionPostSyntaticSugarTests.m */,
+				1239E7AB19A39BFF009449CC /* TNTHttpConnectionPutSyntaticSugarTests.m */,
 				12936510199BDB0500C48105 /* NSDictionaryQueryString.m */,
 				1293650A199A795B00C48105 /* NSStringURLUtilsTests.m */,
 				12DB6C3B1989896500A1E571 /* TNTHttpConnectionTests.m */,
-				123C330F1993E268008627E5 /* TNTHttpConnectionSyntaticSugarTests.m */,
 				1293650C199A886200C48105 /* TNTHttpMethodsTests.m */,
 				1293650E199A8ABE00C48105 /* TNTHttpStatusCodesTests.m */,
 				123C33111993EB09008627E5 /* TNTTestCase.h */,
@@ -344,9 +359,14 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				1239E7AD19A39BFF009449CC /* TNTHttpConnectionHeadSyntaticSugarTests.m in Sources */,
+				1239E7AE19A39BFF009449CC /* TNTHttpConnectionPatchSyntaticSugarTests.m in Sources */,
 				1293650D199A886200C48105 /* TNTHttpMethodsTests.m in Sources */,
 				1293650F199A8ABE00C48105 /* TNTHttpStatusCodesTests.m in Sources */,
-				123C33101993E268008627E5 /* TNTHttpConnectionSyntaticSugarTests.m in Sources */,
+				123C33101993E268008627E5 /* TNTHttpConnectionGetSyntaticSugarTests.m in Sources */,
+				1239E7AF19A39BFF009449CC /* TNTHttpConnectionPostSyntaticSugarTests.m in Sources */,
+				1239E7B019A39BFF009449CC /* TNTHttpConnectionPutSyntaticSugarTests.m in Sources */,
+				1239E7AC19A39BFF009449CC /* TNTHttpConnectionDeleteSyntaticSugarTests.m in Sources */,
 				1293650B199A795B00C48105 /* NSStringURLUtilsTests.m in Sources */,
 				12936511199BDB0500C48105 /* NSDictionaryQueryString.m in Sources */,
 				12DB6C3C1989896500A1E571 /* TNTHttpConnectionTests.m in Sources */,
