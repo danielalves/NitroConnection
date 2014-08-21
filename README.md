@@ -25,7 +25,10 @@ Without further ado:
 
 Now let's talk about other **NitroConnection** features:
 
+- Thread safety.
 - It supports `GET`, `HEAD`, `DELETE`, `POST`, `PUT` and `PATCH` HTTP methods.
+- Easy query string, body params and headers configuration.
+- Global, per connection and per request cache policy and timeout interval configuration.
 - Its callbacks come in two flavors: via delegate and via blocks.
 - A single **NitroConnection** can be used to make any number of requests.
 - Simple retry! Just call... `retry`!
@@ -121,8 +124,33 @@ As opposed to managed connections, unmanaged connections are canceled and releas
 Managed vs Unmanaged Connections
 --------------------------------
 
+So, what type of connection should you use? Well, as everything in life, it depends. The rule of thumb is:
+
+- **Managed**: Very good for fire and forget requests. For example: ping a recommendation or analytics API.
+- **Unmanaged**: Fits requests that have a strong relationship to its interface context. For example: in a search result screen, as the user scrolls up, more results are fetched. When the user leaves the screen, connections should be canceled. Afterall, we don't need the search results anymore.
+
+That being said, you could stick with managed connections only, as long as you don't forget to call `cancel` on every connection that is not needed anymore.
+
 Going down one level
 --------------------
+
+**NitroConnection** offers a lot of syntatic sugar methods for your code to look better, and you are really advised to use them. But, if you want to go down, it is possible:
+
+```objc
+TNTHttpConnection *conn = [TNTHttpConnection new];
+conn.timeoutInterval = 5.0;
+conn.cachePolicy = NSURLRequestReloadIgnoringCacheData;
+
+// We are not passing parameters just for the sake of simplicity
+[connection startRequestWithMethod: TNTHttpMethodGet
+                               url: @"google.com"
+                            params: nil
+                           headers: nil
+                           managed: NO
+                        onDidStart: nil
+                         onSuccess: nil
+                           onError: nil];
+```
 
 Requirements
 ------------
@@ -147,4 +175,3 @@ License
 -------
 
 **NitroConnection** is available under the MIT license. See the LICENSE file for more info.
-
