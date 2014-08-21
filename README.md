@@ -83,6 +83,7 @@ As opposed to managed connections, unmanaged connections are canceled and releas
 // This will not work as intended
 //
 @implementation NitroConnectionMisuseClass
+
 -( void )loadMoreVideos
 {
     // DON'T DO THIS! This connection may never complete since
@@ -91,6 +92,7 @@ As opposed to managed connections, unmanaged connections are canceled and releas
                          withParams: @{ @"video-id": @900 }
                            delegate: self];
 }
+
 @end
 
 //
@@ -112,6 +114,7 @@ As opposed to managed connections, unmanaged connections are canceled and releas
                                           withParams: @{ @"video-id": @900 }
                                             delegate: self];
 }
+
 @end
 ```
 
@@ -120,3 +123,28 @@ Managed vs Unmanaged Connections
 
 Going down one level
 --------------------
+
+Requirements
+------------
+
+iOS 6.0 or higher, ARC only
+
+Installation
+------------
+
+**NitroConnection** is available through [CocoaPods](http://cocoapods.org). To install it, simply add the following line to your Podfile:
+
+```ruby
+pod 'NitroConnection'
+```
+
+Author
+------
+
+- [Daniel L. Alves](http://github.com/danielalves) ([@alveslopesdan](https://twitter.com/alveslopesdan))
+
+License
+-------
+
+**NitroConnection** is available under the MIT license. See the LICENSE file for more info.
+
