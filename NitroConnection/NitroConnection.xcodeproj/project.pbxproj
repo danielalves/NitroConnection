@@ -61,6 +61,7 @@
 		1239E7A919A39BFF009449CC /* TNTHttpConnectionPatchSyntaticSugarTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TNTHttpConnectionPatchSyntaticSugarTests.m; sourceTree = "<group>"; };
 		1239E7AA19A39BFF009449CC /* TNTHttpConnectionPostSyntaticSugarTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TNTHttpConnectionPostSyntaticSugarTests.m; sourceTree = "<group>"; };
 		1239E7AB19A39BFF009449CC /* TNTHttpConnectionPutSyntaticSugarTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TNTHttpConnectionPutSyntaticSugarTests.m; sourceTree = "<group>"; };
+		1239E7B119A67AD2009449CC /* NitroConnection.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = NitroConnection.h; sourceTree = "<group>"; };
 		123C32C219916293008627E5 /* TNTHttpConnection+SyntaticSugar.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "TNTHttpConnection+SyntaticSugar.h"; sourceTree = "<group>"; };
 		123C32C319916293008627E5 /* TNTHttpConnection+SyntaticSugar.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "TNTHttpConnection+SyntaticSugar.m"; sourceTree = "<group>"; };
 		123C32C5199162DC008627E5 /* NSString+URLUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSString+URLUtils.h"; sourceTree = "<group>"; };
@@ -150,6 +151,7 @@
 		12DB6C211989896200A1E571 /* NitroConnection */ = {
 			isa = PBXGroup;
 			children = (
+				1239E7B119A67AD2009449CC /* NitroConnection.h */,
 				123C32C81992A61B008627E5 /* NSDictionary+QueryString.h */,
 				123C32C91992A61B008627E5 /* NSDictionary+QueryString.m */,
 				123C32C5199162DC008627E5 /* NSString+URLUtils.h */,
