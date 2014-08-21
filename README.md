@@ -32,7 +32,7 @@ Now let's talk about other **NitroConnection** features:
 - Its callbacks come in two flavors: via delegate and via blocks.
 - A single **NitroConnection** can be used to make any number of requests.
 - Simple retry! Just call... `retry`!
-- Offers a way to set a connection as managed or unmanaged, giving you more control on what is happening behind the scenes. More about that below.
+- Offers a way to set a request as managed or unmanaged, giving you more control on what is happening behind the scenes. More about that below.
 
 Managed Connections
 -------------------
@@ -142,15 +142,22 @@ conn.timeoutInterval = 5.0;
 conn.cachePolicy = NSURLRequestReloadIgnoringCacheData;
 
 // We are not passing parameters just for the sake of simplicity
-[connection startRequestWithMethod: TNTHttpMethodGet
-                               url: @"google.com"
-                            params: nil
-                           headers: nil
-                           managed: NO
-                        onDidStart: nil
-                         onSuccess: nil
-                           onError: nil];
+[conn startRequestWithMethod: TNTHttpMethodGet
+                         url: @"google.com"
+                      params: nil
+                     headers: nil
+                     managed: NO
+                  onDidStart: nil
+                   onSuccess: nil
+                     onError: nil];
+                           
+// Or
+conn.delegate = /* an object */;
+NSURLRequest *request = /* request creation */;
+[conn startRequest: request managed: YES];
 ```
+
+Now you just discovered that what makes a connection managed or unmanaged is its current request. Yes, the managed state of a connection is mutable and the same `TNTHttpConnection` object **CAN** be used to make managed and unmanaged requests! There is no problem at all =)
 
 Requirements
 ------------
