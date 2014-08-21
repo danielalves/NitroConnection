@@ -73,8 +73,6 @@ static NSString * const NitroConnectionTestsStubErrorURL = @"http://error.nitroc
 +( void )tearDown
 {
     [OHHTTPStubs removeAllStubs];
-    
-    [super tearDown];
 }
 
 #pragma mark - Cases
@@ -239,7 +237,7 @@ static NSString * const NitroConnectionTestsStubErrorURL = @"http://error.nitroc
 
 -( void )test_head_methods_pass_params_in_query_string
 {
-    NSDictionary *params = @{ @"name": @"wolverine", @"mutant-power": @"healing factor" };
+    NSDictionary *params = @{ @"name": @"storm", @"mutant-power": @"weather control" };
     
     // Managed
     TNTHttpConnection *temp = [TNTHttpConnection head: NitroConnectionTestsStubURL withParams: params delegate: self];
@@ -270,7 +268,7 @@ static NSString * const NitroConnectionTestsStubErrorURL = @"http://error.nitroc
 
 -( void )test_head_methods_send_headers
 {
-    NSDictionary *headers = @{ @"name": @"wolverine", @"mutant-power": @"healing factor" };
+    NSDictionary *headers = @{ @"name": @"storm", @"mutant-power": @"weather control" };
     
     // Managed
     TNTHttpConnection *temp = [TNTHttpConnection head: NitroConnectionTestsStubURL withParams: nil headers: headers delegate: self];

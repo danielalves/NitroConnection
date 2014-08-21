@@ -73,8 +73,6 @@ static NSString * const NitroConnectionTestsStubErrorURL = @"http://error.nitroc
 +( void )tearDown
 {
     [OHHTTPStubs removeAllStubs];
-    
-    [super tearDown];
 }
 
 #pragma mark - Cases
@@ -196,7 +194,7 @@ static NSString * const NitroConnectionTestsStubErrorURL = @"http://error.nitroc
     XCTAssertNil( weakConnection );
 }
 
--( void )test_delete_methods_use_http_head
+-( void )test_delete_methods_use_http_delete
 {
     // Managed
     TNTHttpConnection *temp = [TNTHttpConnection delete: NitroConnectionTestsStubURL delegate: nil];

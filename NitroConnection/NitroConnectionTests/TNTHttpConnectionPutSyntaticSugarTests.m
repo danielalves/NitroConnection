@@ -73,8 +73,6 @@ static NSString * const NitroConnectionTestsStubErrorURL = @"http://error.nitroc
 +( void )tearDown
 {
     [OHHTTPStubs removeAllStubs];
-    
-    [super tearDown];
 }
 
 #pragma mark - Cases
@@ -196,7 +194,7 @@ static NSString * const NitroConnectionTestsStubErrorURL = @"http://error.nitroc
     XCTAssertNil( weakConnection );
 }
 
--( void )test_put_methods_use_http_head
+-( void )test_put_methods_use_http_put
 {
     // Managed
     TNTHttpConnection *temp = [TNTHttpConnection put: NitroConnectionTestsStubURL delegate: nil];
@@ -239,7 +237,7 @@ static NSString * const NitroConnectionTestsStubErrorURL = @"http://error.nitroc
 
 -( void )test_put_methods_pass_params_in_request_body
 {
-    NSDictionary *params = @{ @"name": @"wolverine", @"mutant-power": @"healing factor" };
+    NSDictionary *params = @{ @"name": @"rogue", @"mutant-power": @"absorption of memories, skills and powers by touch" };
     
     // Managed
     TNTHttpConnection *temp = [TNTHttpConnection put: NitroConnectionTestsStubURL withParams: params delegate: self];
@@ -270,7 +268,7 @@ static NSString * const NitroConnectionTestsStubErrorURL = @"http://error.nitroc
 
 -( void )test_put_methods_send_headers
 {
-    NSDictionary *headers = @{ @"name": @"wolverine", @"mutant-power": @"healing factor" };
+    NSDictionary *headers = @{ @"name": @"rogue", @"mutant-power": @"absorption of memories, skills and powers by touch" };
     
     // Managed
     TNTHttpConnection *temp = [TNTHttpConnection put: NitroConnectionTestsStubURL withParams: nil headers: headers delegate: self];
