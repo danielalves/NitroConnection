@@ -12,7 +12,7 @@
 
 @implementation NSString( NitroConnection_URLUtils )
 
--( NSString* )urlEncodeUsingEncoding:( NSStringEncoding )encoding
+-( NSString* )urlEscapeUsingEncoding:( NSStringEncoding )encoding
 {
 	return ( __bridge_transfer NSString* )CFURLCreateStringByAddingPercentEscapes( kCFAllocatorDefault,
                                                                                    ( __bridge CFStringRef )self,
@@ -21,7 +21,7 @@
                                                                                    CFStringConvertNSStringEncodingToEncoding( encoding ));
 }
 
--( NSString* )urlUnencodeUsingEncoding:( NSStringEncoding )encoding
+-( NSString* )urlUnescapeUsingEncoding:( NSStringEncoding )encoding
 {
 	return ( __bridge_transfer NSString* )CFURLCreateStringByReplacingPercentEscapesUsingEncoding( kCFAllocatorDefault,
                                                                                                    ( __bridge CFStringRef )self,

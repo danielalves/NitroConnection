@@ -25,8 +25,8 @@
         NSString *valueStr = [self[key] description];
         
         [params addObject: [NSString stringWithFormat: @"%@=%@",
-                                                       [keyStr urlEncodeUsingEncoding: NSUTF8StringEncoding],
-                                                       [valueStr urlEncodeUsingEncoding: NSUTF8StringEncoding]]];
+                                                       [keyStr urlEscapeUsingEncoding: NSUTF8StringEncoding],
+                                                       [valueStr urlEscapeUsingEncoding: NSUTF8StringEncoding]]];
     }
     
     return [params componentsJoinedByString: @"&"];
