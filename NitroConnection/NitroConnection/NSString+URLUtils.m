@@ -10,7 +10,7 @@
 
 #pragma mark - Implementation
 
-@implementation NSString( URLUtils )
+@implementation NSString( NitroConnection_URLUtils )
 
 -( NSString* )urlEncodeUsingEncoding:( NSStringEncoding )encoding
 {

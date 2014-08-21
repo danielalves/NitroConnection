@@ -13,7 +13,7 @@
 
 #pragma mark - Implementation
 
-@implementation NSDictionary( QueryString )
+@implementation NSDictionary( NitroConnection_QueryString )
 
 -( NSString * )toQueryString
 {

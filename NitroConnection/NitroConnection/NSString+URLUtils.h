@@ -8,7 +8,7 @@
 
 #import <Foundation/Foundation.h>
 
-@interface NSString( URLUtils )
+@interface NSString( NitroConnection_URLUtils )
 
 -( NSString* )urlEncodeUsingEncoding:( NSStringEncoding )encoding;
 -( NSString* )urlUnencodeUsingEncoding:( NSStringEncoding )encoding;
