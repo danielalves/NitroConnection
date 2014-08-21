@@ -1,5 +1,8 @@
 NitroConnection
 ===============
+[![Version](http://cocoapod-badges.herokuapp.com/v/NitroConnection/badge.png)](http://cocoadocs.org/docsets/NitroConnection)
+[![Platform](http://cocoapod-badges.herokuapp.com/p/NitroConnection/badge.png)](http://cocoadocs.org/docsets/NitroConnection)
+[![TravisCI](https://travis-ci.org/danielalves/NitroConnection.svg?branch=master)](https://travis-ci.org/danielalves/NitroConnection)
 
 **NitroConnection** is a very fast, simple and lightweight HTTP connection wrapper for iOS as an alternative to AFNetworking.
 
@@ -8,7 +11,7 @@ NitroConnection
 Without further ado:
 
 ```objc
-[TNTHttpConnection get: @"https://octodex.github.com/plumber/"
+[TNTHttpConnection get: @"https://octodex.github.com/images/plumber.jpg"
             onDidStart: {
                 // Show loading feedback
                 // ....
