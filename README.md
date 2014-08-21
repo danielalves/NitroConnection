@@ -83,7 +83,6 @@ As opposed to managed connections, unmanaged connections are canceled and releas
 // This will not work as intended
 //
 @implementation NitroConnectionMisuseClass
-
 -( void )loadMoreVideos
 {
     // DON'T DO THIS! This connection may never complete since
@@ -92,7 +91,6 @@ As opposed to managed connections, unmanaged connections are canceled and releas
                          withParams: @{ @"video-id": @900 }
                            delegate: self];
 }
-
 @end
 
 //
@@ -114,7 +112,6 @@ As opposed to managed connections, unmanaged connections are canceled and releas
                                           withParams: @{ @"video-id": @900 }
                                             delegate: self];
 }
-
 @end
 ```
 
