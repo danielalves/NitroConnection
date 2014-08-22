@@ -88,12 +88,39 @@ typedef void ( ^TNTHttpConnectionErrorBlock )( TNTHttpConnection *connection, NS
  */
 @property( nonatomic, readwrite, weak )id< TNTHttpConnectionDelegate > delegate;
 
+/**
+ *  <#Description#>
+ */
 @property( nonatomic, readonly, assign )BOOL requestAlive;
 
+/**
+ *  <#Description#>
+ */
 @property( nonatomic, readonly )NSURLRequest *lastRequest;
+
+/**
+ *  <#Description#>
+ */
 @property( nonatomic, readonly )NSHTTPURLResponse *lastResponse;
 
+/**
+ *  The timeout interval to be used for requests started by this connection. This value
+ *  overrides the default value set by +setDefaultTimeoutInterval:. This value is only
+ *  ignored if the request sets a timeout interval for itself.
+ *
+ *  @see +setDefaultTimeoutInterval:
+ *  @see +defaultTimeoutInterval
+ */
 @property( nonatomic, readwrite, assign )NSTimeInterval timeoutInterval;
+
+/**
+ *  The cache policy to be used for requests started by this connection. This value
+ *  overrides the default value set by +setDefaultCachePolicy:. This value is only
+ *  ignored if the request sets a cache policy for itself.
+ *
+ *  @see +setDefaultCachePolicy:
+ *  @see +defaultCachePolicy
+ */
 @property( nonatomic, readwrite, assign )NSURLRequestCachePolicy cachePolicy;
 
 /***********************************************************************
@@ -114,6 +141,12 @@ typedef void ( ^TNTHttpConnectionErrorBlock )( TNTHttpConnection *connection, NS
  *                 requests, there is no need to cancel them explicitly, since this will be done automatically 
  *                 when the scope in which their connections were created is left - therefore you must keep a strong
  *                 reference to the connection to keep it alive.
+ *
+ *  @see -startRequest:managed:onDidStart:onSuccess:onError:
+ *  @see -startRequestWithMethod:url:params:headers:managed:
+ *  @see -startRequestWithMethod:url:params:headers:managed:onDidStart:onSuccess:onError:
+ *  @see -cancelRequest
+ *  @see -retryRequest
  */
 -( void )startRequest:( NSURLRequest * )request managed:( BOOL )managed;
 
@@ -138,6 +171,12 @@ typedef void ( ^TNTHttpConnectionErrorBlock )( TNTHttpConnection *connection, NS
  *
  *  @param errorBlock    The block that will be called if the request fails. The block will be called in the same queue
  *                       from which the request was started. This parameter can be nil.
+ *
+ *  @see -startRequest:managed:
+ *  @see -startRequestWithMethod:url:params:headers:managed:
+ *  @see -startRequestWithMethod:url:params:headers:managed:onDidStart:onSuccess:onError:
+ *  @see -cancelRequest
+ *  @see -retryRequest
  */
 -( void )startRequest:( NSURLRequest * )request
               managed:( BOOL )managed
@@ -172,6 +211,12 @@ typedef void ( ^TNTHttpConnectionErrorBlock )( TNTHttpConnection *connection, NS
  *                    requests, there is no need to cancel them explicitly, since this will be done automatically
  *                    when the scope in which their connections were created is left - therefore you must keep a strong
  *                    reference to the connection to keep it alive.
+ *
+ *  @see -startRequest:managed:
+ *  @see -startRequest:managed:onDidStart:onSuccess:onError:
+ *  @see -startRequestWithMethod:url:params:headers:managed:onDidStart:onSuccess:onError:
+ *  @see -cancelRequest
+ *  @see -retryRequest
  */
 -( void )startRequestWithMethod:( TNTHttpMethod )httpMethod
                             url:( NSString * )url
@@ -215,6 +260,12 @@ typedef void ( ^TNTHttpConnectionErrorBlock )( TNTHttpConnection *connection, NS
  *
  *  @param errorBlock    The block that will be called if the request fails. The block will be called in the same queue
  *                       from which the request was started. This parameter can be nil.
+ *
+ *  @see -startRequest:managed:
+ *  @see -startRequest:managed:onDidStart:onSuccess:onError:
+ *  @see -startRequestWithMethod:url:params:headers:managed:
+ *  @see -cancelRequest
+ *  @see -retryRequest
  */
 -( void )startRequestWithMethod:( TNTHttpMethod )httpMethod
                             url:( NSString * )url
@@ -228,11 +279,15 @@ typedef void ( ^TNTHttpConnectionErrorBlock )( TNTHttpConnection *connection, NS
 /**
  *  Retries the last request made. If there is a request being made and it has not yet finished,
  *  cancels it and then retries it.
+ *
+ *  @see -cancelRequest
  */
 -( void )retryRequest;
 
 /**
  *  Cancels the current request. If there is no current request, does nothing.
+ *
+ *  @see -retryRequest
  */
 -( void )cancelRequest;
 
@@ -247,6 +302,8 @@ typedef void ( ^TNTHttpConnectionErrorBlock )( TNTHttpConnection *connection, NS
  *  Initially this value is NSURLRequestUseProtocolCachePolicy.
  *
  *  @param cachePolicy The new default cache policy.
+ *
+ *  @see +defaultCachePolicy
  */
 +( void )setDefaultCachePolicy:( NSURLRequestCachePolicy )cachePolicy;
 
@@ -255,6 +312,8 @@ typedef void ( ^TNTHttpConnectionErrorBlock )( TNTHttpConnection *connection, NS
  *  created connections.
  *
  *  @return The current default cache policy.
+ *
+ *  @see +setDefaultCachePolicy:
  */
 +( NSURLRequestCachePolicy )defaultCachePolicy;
 
@@ -264,6 +323,8 @@ typedef void ( ^TNTHttpConnectionErrorBlock )( TNTHttpConnection *connection, NS
  *  otherwise.
  *
  *  @param timeoutInterval The new default timeout interval.
+ *
+ *  @see +defaultTimeoutInterval
  */
 +( void )setDefaultTimeoutInterval:( NSTimeInterval )timeoutInterval;
 
@@ -272,6 +333,8 @@ typedef void ( ^TNTHttpConnectionErrorBlock )( TNTHttpConnection *connection, NS
  *  created connections.
  *
  *  @return The current default timeout interval.
+ *
+ *  @see +setDefaultTimeoutInterval:
  */
 +( NSTimeInterval )defaultTimeoutInterval;
 
