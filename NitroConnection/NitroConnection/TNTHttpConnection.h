@@ -13,7 +13,7 @@
 
 /***********************************************************************
  *
- * Constants
+ * Error Constants
  *
  ***********************************************************************/
 
@@ -32,25 +32,58 @@ FOUNDATION_EXPORT const NSInteger TNTHttpConnectionErrorCodeHttpError;
 
 @class TNTHttpConnection;
 
+/**
+ *  Type of a block that is called just after a connection starts a request.
+ *
+ *  @param connection The connection which did start a request.
+ */
 typedef void ( ^TNTHttpConnectionDidStartBlock )( TNTHttpConnection *connection );
+
+/**
+ *  Type of a block that is called when a request succeeds.
+ *
+ *  @param connection The connection which started the request.
+ *  @param response   The request response
+ *  @param data       The data received
+ */
 typedef void ( ^TNTHttpConnectionSuccessBlock )( TNTHttpConnection *connection, NSHTTPURLResponse *response, NSData *data );
+
+/**
+ *  Type of a block that is called when a request fails.
+ *
+ *  @param connection The connection which started the request.
+ *  @param error      An error describing the cause of the failure.
+ */
 typedef void ( ^TNTHttpConnectionErrorBlock )( TNTHttpConnection *connection, NSError *error );
 
-/***********************************************************************
- *
- * TNTHttpConnectionDelegate
- *
- ***********************************************************************/
-
-@class TNTHttpConnection;
-
+/**
+ *  The TNTHttpConnectionDelegate protocol describes methods that should be implemented by the delegate for an instance of the TNTHttpConnection class.
+ */
 @protocol TNTHttpConnectionDelegate< NSObject >
 
 	@optional
+        /**
+         *  Called just after a connection starts a request.
+         *
+         *  @param connection The connection which did start a request.
+         */
 		-( void )onTNTHttpConnectionDidStart:( TNTHttpConnection * )connection;
 
+        /**
+         *  Called when a request succeeds.
+         *
+         *  @param connection The connection which started the request.
+         *  @param response   The request response
+         *  @param data       The data received
+         */
         -( void )onTNTHttpConnection:( TNTHttpConnection * )connection didReceiveResponse:( NSHTTPURLResponse * )response withData:( NSData * )data;
 
+        /**
+         *  Called when a request fails.
+         *
+         *  @param connection The connection which started the request.
+         *  @param error      An error describing the cause of the failure.
+         */
 		-( void )onTNTHttpConnection:( TNTHttpConnection * )connection didFailWithError:( NSError * )error;
 @end
 
@@ -89,17 +122,17 @@ typedef void ( ^TNTHttpConnectionErrorBlock )( TNTHttpConnection *connection, NS
 @property( nonatomic, readwrite, weak )id< TNTHttpConnectionDelegate > delegate;
 
 /**
- *  <#Description#>
+ *  Returns if there is a request being made. This property is KVO compliant.
  */
 @property( nonatomic, readonly, assign )BOOL requestAlive;
 
 /**
- *  <#Description#>
+ *  The last request made by this connection.
  */
 @property( nonatomic, readonly )NSURLRequest *lastRequest;
 
 /**
- *  <#Description#>
+ *  The response received for the last request made by this connection. This property is set to nil on every new request.
  */
 @property( nonatomic, readonly )NSHTTPURLResponse *lastResponse;
 
@@ -134,6 +167,8 @@ typedef void ( ^TNTHttpConnectionErrorBlock )( TNTHttpConnection *connection, NS
  *  and then starts the new one.
  *
  *  @param request The request that should be made. If this parameter is nil, this method does nothing.
+ *                 If request sets a cache policy and/or a timeout interval for itself, these values will
+ *                 override the class values and the values set for the connection.
  *
  *  @param managed If the request is managed or not. Managed requests make their connections live outside
  *                 the scope in which they were created, while unmanaged requests do not. If you do not cancel a
@@ -155,6 +190,8 @@ typedef void ( ^TNTHttpConnectionErrorBlock )( TNTHttpConnection *connection, NS
  *  and then starts the new one.
  *
  *  @param request       The request that should be made. If this parameter is nil, this method does nothing.
+ *                       If request sets a cache policy and/or a timeout interval for itself, these values will
+ *                       override the class values and the values set for the connection.
  *
  *  @param managed       If the request is managed or not. Managed requests make their connections live outside
  *                       the scope in which they were created, while unmanaged requests do not. If you do not cancel a
