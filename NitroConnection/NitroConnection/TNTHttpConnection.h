@@ -17,12 +17,30 @@
  *
  ***********************************************************************/
 
+/**
+ *  TNTHttpConnection error domain
+ */
 FOUNDATION_EXPORT NSString * const TNTHttpConnectionErrorDomain;
 
-FOUNDATION_EXPORT NSString * const TNTHttpConnectionErrorUserInfoResponseKey;
-FOUNDATION_EXPORT NSString * const TNTHttpConnectionErrorUserInfoDataKey;
-
+/**
+ *  Describes an HTTP error. That is, every non 2** status. See TNTHttpStatusCodes
+ *  for more information.
+ */
 FOUNDATION_EXPORT const NSInteger TNTHttpConnectionErrorCodeHttpError;
+
+/**
+ *  A key contained in the userInfo dictionary property of a NSError object sent
+ *  to request failure callbacks. Its value is a NSHTTPURLResponse object which
+ *  holds the HTTP response to the failed request.
+ */
+FOUNDATION_EXPORT NSString * const TNTHttpConnectionErrorUserInfoResponseKey;
+
+/**
+ *  A key contained in the userInfo dictionary property of a NSError object sent
+ *  to request failure callbacks. Its value is a NSData object which holds the
+ *  HTTP response data.
+ */
+FOUNDATION_EXPORT NSString * const TNTHttpConnectionErrorUserInfoDataKey;
 
 /***********************************************************************
  *
@@ -49,7 +67,8 @@ typedef void ( ^TNTHttpConnectionDidStartBlock )( TNTHttpConnection *connection 
 typedef void ( ^TNTHttpConnectionSuccessBlock )( TNTHttpConnection *connection, NSHTTPURLResponse *response, NSData *data );
 
 /**
- *  Type of a block that is called when a request fails.
+ *  Type of a block that is called when a request fails or when the HTTP status code of the 
+ *  response describes a HTTP error.
  *
  *  @param connection The connection which started the request.
  *  @param error      An error describing the cause of the failure.
@@ -79,7 +98,8 @@ typedef void ( ^TNTHttpConnectionErrorBlock )( TNTHttpConnection *connection, NS
         -( void )onTNTHttpConnection:( TNTHttpConnection * )connection didReceiveResponse:( NSHTTPURLResponse * )response withData:( NSData * )data;
 
         /**
-         *  Called when a request fails.
+         *  Called when a request fails or when the HTTP status code of the response describes
+         *  a HTTP error.
          *
          *  @param connection The connection which started the request.
          *  @param error      An error describing the cause of the failure.
@@ -385,7 +405,30 @@ typedef void ( ^TNTHttpConnectionErrorBlock )( TNTHttpConnection *connection, NS
 
 @interface TNTHttpConnection( Virtual )
 
+/**
+ *  Called as a connection loads data incrementally.
+ *  The default implementation appends data to dataBuffer.
+ *
+ *  @param data       The newly available data.
+ *
+ *  @param dataBuffer The buffer that should be used to concatenate the contents of each data object delivered 
+ *                    to build up the complete data for a URL load.
+ */
 -( void )onDidReceiveResponseData:( NSData * )data buffer:( NSData * )dataBuffer;
+
+/**
+ *  Returns if a request was successful.
+ *  The default implementation returns YES for every 2** HTTP status codes, NO otherwise.
+ *
+ *  @param response     The HTTP response.
+ *
+ *  @param responseData The complete response data.
+ *
+ *  @param error        Should return an error describing why the request failed, or nil if the request
+ *                      was successful.
+ *
+ *  @return YES if a request was successful, NO otherwise.
+ */
 -( BOOL )isSuccessfulResponse:( NSHTTPURLResponse * )response data:( NSData * )responseData error:( out NSError ** )error;
 
 @end

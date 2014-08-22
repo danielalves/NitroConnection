@@ -29,10 +29,10 @@
 
 NSString * const TNTHttpConnectionErrorDomain = @"TNTHttpConnectionErrorDomain";
 
+const NSInteger TNTHttpConnectionErrorCodeHttpError = 1;
+
 NSString * const TNTHttpConnectionErrorUserInfoResponseKey = @"TNTHttpConnectionErrorUserInfoResponseKey";
 NSString * const TNTHttpConnectionErrorUserInfoDataKey = @"TNTHttpConnectionErrorUserInfoDataKey";
-
-const NSInteger TNTHttpConnectionErrorCodeHttpError = 1;
 
 #pragma mark - Statics
 
