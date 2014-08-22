@@ -347,8 +347,10 @@ static NSString * const NitroConnectionTestsStubErrorURL = @"http://error.nitroc
     // Managed
     [self waitForAsyncCode: ^{
         connection = [TNTHttpConnection head: NitroConnectionTestsStubURL
-                                 onDidStart: ^{ didStartBlockRan = YES;
-                                     [self finishedAsyncOperation]; }
+                                 onDidStart: ^( TNTHttpConnection *conn ){
+                                     didStartBlockRan = YES;
+                                     [self finishedAsyncOperation];
+                                  }
                                   onSuccess: nil
                                     onError: nil];
     }];
@@ -360,8 +362,10 @@ static NSString * const NitroConnectionTestsStubErrorURL = @"http://error.nitroc
     // Unmanaged
     [self waitForAsyncCode: ^{
         connection = [TNTHttpConnection unmanagedHead: NitroConnectionTestsStubURL
-                                          onDidStart: ^{ didStartBlockRan = YES;
-                                              [self finishedAsyncOperation]; }
+                                          onDidStart: ^( TNTHttpConnection *conn ){
+                                              didStartBlockRan = YES;
+                                              [self finishedAsyncOperation];
+                                           }
                                            onSuccess: nil
                                              onError: nil];
     }];
@@ -375,7 +379,7 @@ static NSString * const NitroConnectionTestsStubErrorURL = @"http://error.nitroc
     [self waitForAsyncCode: ^{
         connection = [TNTHttpConnection head: NitroConnectionTestsStubURL
                                  onDidStart: nil
-                                  onSuccess: ^( NSHTTPURLResponse *response, NSData *data ) {
+                                  onSuccess: ^( TNTHttpConnection *conn, NSHTTPURLResponse *response, NSData *data ) {
                                       onSuccessBlockRan = YES;
                                       [self finishedAsyncOperation];
                                   }
@@ -390,7 +394,7 @@ static NSString * const NitroConnectionTestsStubErrorURL = @"http://error.nitroc
     [self waitForAsyncCode: ^{
         connection = [TNTHttpConnection unmanagedHead: NitroConnectionTestsStubURL
                                           onDidStart: nil
-                                           onSuccess: ^( NSHTTPURLResponse *response, NSData *data ) {
+                                           onSuccess: ^( TNTHttpConnection *conn, NSHTTPURLResponse *response, NSData *data ) {
                                                onSuccessBlockRan = YES;
                                                [self finishedAsyncOperation];
                                            }
@@ -407,7 +411,7 @@ static NSString * const NitroConnectionTestsStubErrorURL = @"http://error.nitroc
         connection = [TNTHttpConnection head: NitroConnectionTestsStubErrorURL
                                  onDidStart: nil
                                   onSuccess: nil
-                                    onError: ^( NSError *error ) {
+                                    onError: ^( TNTHttpConnection *conn, NSError *error ) {
                                         onErrorBlockRan = YES;
                                         [self finishedAsyncOperation];
                                     }];
@@ -422,7 +426,7 @@ static NSString * const NitroConnectionTestsStubErrorURL = @"http://error.nitroc
         connection = [TNTHttpConnection unmanagedHead: NitroConnectionTestsStubErrorURL
                                           onDidStart: nil
                                            onSuccess: nil
-                                             onError: ^( NSError *error ) {
+                                             onError: ^( TNTHttpConnection *conn, NSError *error ) {
                                                  onErrorBlockRan = YES;
                                                  [self finishedAsyncOperation];
                                              }];

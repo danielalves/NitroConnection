@@ -424,7 +424,7 @@ static NSTimeInterval originalTimeoutInterval;
         [self waitForAsyncCode: ^{
             [connection startRequest: successRequest
                              managed: NO
-                          onDidStart: ^{
+                          onDidStart: ^( TNTHttpConnection *conn ){
                               didStartBlockRan = YES;
                               [self finishedAsyncOperation];
                            }
@@ -441,7 +441,7 @@ static NSTimeInterval originalTimeoutInterval;
                                         params: nil
                                        headers: nil
                                        managed: NO
-                                    onDidStart: ^{
+                                    onDidStart: ^( TNTHttpConnection *conn ){
                                         didStartBlockRan = YES;
                                         [self finishedAsyncOperation];
                                      }
@@ -468,7 +468,7 @@ static NSTimeInterval originalTimeoutInterval;
             [connection startRequest: successRequest
                              managed: NO
                           onDidStart: nil
-                           onSuccess: ^( NSHTTPURLResponse *response, NSData *data ) {
+                           onSuccess: ^( TNTHttpConnection *conn, NSHTTPURLResponse *response, NSData *data ) {
                                onSuccessBlockRan = YES;
                                [self finishedAsyncOperation];
                              }
@@ -485,7 +485,7 @@ static NSTimeInterval originalTimeoutInterval;
                                        headers: nil
                                        managed: NO
                                     onDidStart: nil
-                                     onSuccess: ^( NSHTTPURLResponse *response, NSData *data ) {
+                                     onSuccess: ^( TNTHttpConnection *conn, NSHTTPURLResponse *response, NSData *data ) {
                                          onSuccessBlockRan = YES;
                                          [self finishedAsyncOperation];
                                        }
@@ -512,7 +512,7 @@ static NSTimeInterval originalTimeoutInterval;
                              managed: NO
                           onDidStart: nil
                            onSuccess: nil
-                             onError: ^( NSError *error ) {
+                             onError: ^( TNTHttpConnection *conn, NSError *error ) {
                                  onErrorBlockRan = YES;
                                  [self finishedAsyncOperation];
                              }];
@@ -529,7 +529,7 @@ static NSTimeInterval originalTimeoutInterval;
                                        managed: NO
                                     onDidStart: nil
                                      onSuccess: nil
-                                       onError: ^( NSError *error ) {
+                                       onError: ^( TNTHttpConnection *conn, NSError *error ) {
                                            onErrorBlockRan = YES;
                                            [self finishedAsyncOperation];
                                        }];
