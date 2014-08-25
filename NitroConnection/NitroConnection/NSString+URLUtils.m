@@ -10,18 +10,18 @@
 
 #pragma mark - Implementation
 
-@implementation NSString( URLUtils )
+@implementation NSString( NitroConnection_URLUtils )
 
--( NSString* )urlEncodeUsingEncoding:( NSStringEncoding )encoding
+-( NSString* )urlEscapeUsingEncoding:( NSStringEncoding )encoding
 {
 	return ( __bridge_transfer NSString* )CFURLCreateStringByAddingPercentEscapes( kCFAllocatorDefault,
                                                                                    ( __bridge CFStringRef )self,
                                                                                    NULL,
-                                                                                   ( __bridge CFStringRef )@"!*'\"();:@&=+$,/?%#[]% ",
+                                                                                   ( __bridge CFStringRef )@"!*'\"{}();:@&=+$,/?#[]% ",
                                                                                    CFStringConvertNSStringEncodingToEncoding( encoding ));
 }
 
--( NSString* )urlUnencodeUsingEncoding:( NSStringEncoding )encoding
+-( NSString* )urlUnescapeUsingEncoding:( NSStringEncoding )encoding
 {
 	return ( __bridge_transfer NSString* )CFURLCreateStringByReplacingPercentEscapesUsingEncoding( kCFAllocatorDefault,
                                                                                                    ( __bridge CFStringRef )self,

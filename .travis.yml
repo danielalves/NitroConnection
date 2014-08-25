@@ -1,0 +1,8 @@
+language: objective-c
+before_script:
+    - brew update
+    - brew install xctool && brew cleanup xctool
+script:
+    - cd NitroConnection
+    - pod install
+    - xctool -workspace NitroConnection.xcworkspace -sdk iphonesimulator -scheme NitroConnection test

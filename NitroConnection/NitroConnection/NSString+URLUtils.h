@@ -8,9 +8,28 @@
 
 #import <Foundation/Foundation.h>
 
-@interface NSString( URLUtils )
+@interface NSString( NitroConnection_URLUtils )
 
--( NSString* )urlEncodeUsingEncoding:( NSStringEncoding )encoding;
--( NSString* )urlUnencodeUsingEncoding:( NSStringEncoding )encoding;
+/**
+ *  Returns an escaped url string. The list of characters that will be escaped follows:
+ *  '!', '*', ''', '\', '"', '{', '}', '(', ')', ';', ':', '@', '&', '=', 
+ *  '+', '$', ',', '/', '?', '#', '[', ']', '%', ' '
+ *
+ *  @param encoding The encoding of the resulting string
+ *
+ *  @return An url escaped string
+ */
+-( NSString* )urlEscapeUsingEncoding:( NSStringEncoding )encoding;
+
+/**
+ *  Returns an unescaped url string. The list of characters that will be unescaped follows:
+ *  '!', '*', ''', '\', '"', '{', '}', '(', ')', ';', ':', '@', '&', '=',
+ *  '+', '$', ',', '/', '?', '#', '[', ']', '%', ' '
+ *
+ *  @param encoding The encoding of the resulting string
+ *
+ *  @return An url unescaped string
+ */
+-( NSString* )urlUnescapeUsingEncoding:( NSStringEncoding )encoding;
 
 @end

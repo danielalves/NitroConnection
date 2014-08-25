@@ -11,18 +11,46 @@
 
 #import <Foundation/Foundation.h>
 
+/**
+ *  Supported HTTP methods
+ */
 typedef NS_ENUM( NSUInteger, TNTHttpMethod )
 {
+    /**
+     *  HTTP GET
+     */
     TNTHttpMethodGet,
-    TNTHttpMethodPost,
+    /**
+     *  HTTP HEAD
+     */
+    TNTHttpMethodHead,
+    /**
+     *  HTTP DELETE
+     */
     TNTHttpMethodDelete,
+    /**
+     *  HTTP POST
+     */
+    TNTHttpMethodPost,
+    /**
+     *  HTTP PUT
+     */
     TNTHttpMethodPut,
-    TNTHttpMethodPatch,
-    TNTHttpMethodHead
+    /**
+     *  HTTP PATCH
+     */
+    TNTHttpMethodPatch
 };
 
 @interface NSString( TNTHttpMethod )
 
+/**
+ *  Returns the string representation of a HTTP method.
+ *
+ *  @param method The HTTP method which will be converted to a string
+ *
+ *  @return The string representation of a HTTP method
+ */
 +( NSString * )stringFromHttpMethod:( TNTHttpMethod )method;
 
 @end
