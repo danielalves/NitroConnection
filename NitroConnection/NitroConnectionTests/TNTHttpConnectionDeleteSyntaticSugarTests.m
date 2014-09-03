@@ -83,21 +83,27 @@ static NSString * const NitroConnectionTestsStubErrorURL = @"http://error.nitroc
     [TNTHttpConnection delete: NitroConnectionTestsStubURL delegate: nil];
     [TNTHttpConnection delete: NitroConnectionTestsStubURL onDidStart: nil onSuccess: nil onError: nil];
     
-    [TNTHttpConnection delete: NitroConnectionTestsStubURL withParams: nil delegate: self];
-    [TNTHttpConnection delete: NitroConnectionTestsStubURL withParams: nil onDidStart: nil onSuccess: nil onError: nil];
+    [TNTHttpConnection delete: NitroConnectionTestsStubURL params: nil delegate: self];
+    [TNTHttpConnection delete: NitroConnectionTestsStubURL params: nil onDidStart: nil onSuccess: nil onError: nil];
     
-    [TNTHttpConnection delete: NitroConnectionTestsStubURL withParams: nil headers: nil delegate: self];
-    [TNTHttpConnection delete: NitroConnectionTestsStubURL withParams: nil headers: nil onDidStart: nil onSuccess: nil onError: nil];
+    [TNTHttpConnection delete: NitroConnectionTestsStubURL queryString: nil body: nil delegate: self];
+    [TNTHttpConnection delete: NitroConnectionTestsStubURL queryString: nil body: nil onDidStart: nil onSuccess: nil onError: nil];
+    
+    [TNTHttpConnection delete: NitroConnectionTestsStubURL queryString: nil body: nil headers: nil delegate: self];
+    [TNTHttpConnection delete: NitroConnectionTestsStubURL queryString: nil body: nil headers: nil onDidStart: nil onSuccess: nil onError: nil];
     
     // Unmanaged
     [TNTHttpConnection unmanagedDelete: NitroConnectionTestsStubURL delegate: nil];
     [TNTHttpConnection unmanagedDelete: NitroConnectionTestsStubURL onDidStart: nil onSuccess: nil onError: nil];
     
-    [TNTHttpConnection unmanagedDelete: NitroConnectionTestsStubURL withParams: nil delegate: self];
-    [TNTHttpConnection unmanagedDelete: NitroConnectionTestsStubURL withParams: nil onDidStart: nil onSuccess: nil onError: nil];
+    [TNTHttpConnection unmanagedDelete: NitroConnectionTestsStubURL params: nil delegate: self];
+    [TNTHttpConnection unmanagedDelete: NitroConnectionTestsStubURL params: nil onDidStart: nil onSuccess: nil onError: nil];
     
-    [TNTHttpConnection unmanagedDelete: NitroConnectionTestsStubURL withParams: nil headers: nil delegate: self];
-    [TNTHttpConnection unmanagedDelete: NitroConnectionTestsStubURL withParams: nil headers: nil onDidStart: nil onSuccess: nil onError: nil];
+    [TNTHttpConnection unmanagedDelete: NitroConnectionTestsStubURL queryString: nil body: nil delegate: self];
+    [TNTHttpConnection unmanagedDelete: NitroConnectionTestsStubURL queryString: nil body: nil onDidStart: nil onSuccess: nil onError: nil];
+    
+    [TNTHttpConnection unmanagedDelete: NitroConnectionTestsStubURL queryString: nil body: nil headers: nil delegate: self];
+    [TNTHttpConnection unmanagedDelete: NitroConnectionTestsStubURL queryString: nil body: nil headers: nil onDidStart: nil onSuccess: nil onError: nil];
 }
 
 -( void )test_delete_managed_methods_connections_are_not_deallocated_when_scope_is_left
@@ -120,28 +126,42 @@ static NSString * const NitroConnectionTestsStubErrorURL = @"http://error.nitroc
     
     @autoreleasepool
     {
-        TNTHttpConnection *delete = [TNTHttpConnection delete: NitroConnectionTestsStubURL withParams: nil delegate: nil];
+        TNTHttpConnection *delete = [TNTHttpConnection delete: NitroConnectionTestsStubURL params: nil delegate: nil];
         weakConnection = delete;
     };
     XCTAssertNotNil( weakConnection );
     
     @autoreleasepool
     {
-        TNTHttpConnection *delete = [TNTHttpConnection delete: NitroConnectionTestsStubURL withParams: nil onDidStart: nil onSuccess: nil onError: nil];
+        TNTHttpConnection *delete = [TNTHttpConnection delete: NitroConnectionTestsStubURL params: nil onDidStart: nil onSuccess: nil onError: nil];
         weakConnection = delete;
     };
     XCTAssertNotNil( weakConnection );
     
     @autoreleasepool
     {
-        TNTHttpConnection *delete = [TNTHttpConnection delete: NitroConnectionTestsStubURL withParams: nil headers: nil delegate: nil];
+        TNTHttpConnection *delete = [TNTHttpConnection delete: NitroConnectionTestsStubURL queryString: nil body: nil delegate: nil];
         weakConnection = delete;
     };
     XCTAssertNotNil( weakConnection );
     
     @autoreleasepool
     {
-        TNTHttpConnection *delete = [TNTHttpConnection delete: NitroConnectionTestsStubURL withParams: nil headers: nil onDidStart: nil onSuccess: nil onError: nil];
+        TNTHttpConnection *delete = [TNTHttpConnection delete: NitroConnectionTestsStubURL queryString: nil body: nil onDidStart: nil onSuccess: nil onError: nil];
+        weakConnection = delete;
+    };
+    XCTAssertNotNil( weakConnection );
+    
+    @autoreleasepool
+    {
+        TNTHttpConnection *delete = [TNTHttpConnection delete: NitroConnectionTestsStubURL queryString: nil body: nil headers: nil delegate: nil];
+        weakConnection = delete;
+    };
+    XCTAssertNotNil( weakConnection );
+    
+    @autoreleasepool
+    {
+        TNTHttpConnection *delete = [TNTHttpConnection delete: NitroConnectionTestsStubURL queryString: nil body: nil headers: nil onDidStart: nil onSuccess: nil onError: nil];
         weakConnection = delete;
     };
     XCTAssertNotNil( weakConnection );
@@ -167,28 +187,42 @@ static NSString * const NitroConnectionTestsStubErrorURL = @"http://error.nitroc
     
     @autoreleasepool
     {
-        TNTHttpConnection *delete = [TNTHttpConnection unmanagedDelete: NitroConnectionTestsStubURL withParams: nil delegate: nil];
+        TNTHttpConnection *delete = [TNTHttpConnection unmanagedDelete: NitroConnectionTestsStubURL params: nil delegate: nil];
         weakConnection = delete;
     };
     XCTAssertNil( weakConnection );
     
     @autoreleasepool
     {
-        TNTHttpConnection *delete = [TNTHttpConnection unmanagedDelete: NitroConnectionTestsStubURL withParams: nil onDidStart: nil onSuccess: nil onError: nil];
+        TNTHttpConnection *delete = [TNTHttpConnection unmanagedDelete: NitroConnectionTestsStubURL params: nil onDidStart: nil onSuccess: nil onError: nil];
         weakConnection = delete;
     };
     XCTAssertNil( weakConnection );
     
     @autoreleasepool
     {
-        TNTHttpConnection *delete = [TNTHttpConnection unmanagedDelete: NitroConnectionTestsStubURL withParams: nil headers: nil delegate: nil];
+        TNTHttpConnection *delete = [TNTHttpConnection unmanagedDelete: NitroConnectionTestsStubURL queryString: nil body: nil delegate: nil];
         weakConnection = delete;
     };
     XCTAssertNil( weakConnection );
     
     @autoreleasepool
     {
-        TNTHttpConnection *delete = [TNTHttpConnection unmanagedDelete: NitroConnectionTestsStubURL withParams: nil headers: nil onDidStart: nil onSuccess: nil onError: nil];
+        TNTHttpConnection *delete = [TNTHttpConnection unmanagedDelete: NitroConnectionTestsStubURL queryString: nil body: nil onDidStart: nil onSuccess: nil onError: nil];
+        weakConnection = delete;
+    };
+    XCTAssertNil( weakConnection );
+    
+    @autoreleasepool
+    {
+        TNTHttpConnection *delete = [TNTHttpConnection unmanagedDelete: NitroConnectionTestsStubURL queryString: nil body: nil headers: nil delegate: nil];
+        weakConnection = delete;
+    };
+    XCTAssertNil( weakConnection );
+    
+    @autoreleasepool
+    {
+        TNTHttpConnection *delete = [TNTHttpConnection unmanagedDelete: NitroConnectionTestsStubURL queryString: nil body: nil headers: nil onDidStart: nil onSuccess: nil onError: nil];
         weakConnection = delete;
     };
     XCTAssertNil( weakConnection );
@@ -203,16 +237,16 @@ static NSString * const NitroConnectionTestsStubErrorURL = @"http://error.nitroc
     temp = [TNTHttpConnection delete: NitroConnectionTestsStubURL onDidStart: nil onSuccess: nil onError: nil];
     XCTAssertRequestHttpMethod( temp.lastRequest, TNTHttpMethodDelete );
     
-    temp = [TNTHttpConnection delete: NitroConnectionTestsStubURL withParams: nil delegate: self];
+    temp = [TNTHttpConnection delete: NitroConnectionTestsStubURL params: nil delegate: self];
     XCTAssertRequestHttpMethod( temp.lastRequest, TNTHttpMethodDelete );
     
-    temp = [TNTHttpConnection delete: NitroConnectionTestsStubURL withParams: nil onDidStart: nil onSuccess: nil onError: nil];
+    temp = [TNTHttpConnection delete: NitroConnectionTestsStubURL params: nil onDidStart: nil onSuccess: nil onError: nil];
     XCTAssertRequestHttpMethod( temp.lastRequest, TNTHttpMethodDelete );
     
-    temp = [TNTHttpConnection delete: NitroConnectionTestsStubURL withParams: nil headers: nil delegate: self];
+    temp = [TNTHttpConnection delete: NitroConnectionTestsStubURL queryString: nil body: nil delegate: self];
     XCTAssertRequestHttpMethod( temp.lastRequest, TNTHttpMethodDelete );
     
-    temp = [TNTHttpConnection delete: NitroConnectionTestsStubURL withParams: nil headers: nil onDidStart: nil onSuccess: nil onError: nil];
+    temp = [TNTHttpConnection delete: NitroConnectionTestsStubURL queryString: nil body: nil onDidStart: nil onSuccess: nil onError: nil];
     XCTAssertRequestHttpMethod( temp.lastRequest, TNTHttpMethodDelete );
     
     // Unmanaged
@@ -222,16 +256,16 @@ static NSString * const NitroConnectionTestsStubErrorURL = @"http://error.nitroc
     temp = [TNTHttpConnection unmanagedDelete: NitroConnectionTestsStubURL onDidStart: nil onSuccess: nil onError: nil];
     XCTAssertRequestHttpMethod( temp.lastRequest, TNTHttpMethodDelete );
     
-    temp = [TNTHttpConnection unmanagedDelete: NitroConnectionTestsStubURL withParams: nil delegate: self];
+    temp = [TNTHttpConnection unmanagedDelete: NitroConnectionTestsStubURL params: nil delegate: self];
     XCTAssertRequestHttpMethod( temp.lastRequest, TNTHttpMethodDelete );
     
-    temp = [TNTHttpConnection unmanagedDelete: NitroConnectionTestsStubURL withParams: nil onDidStart: nil onSuccess: nil onError: nil];
+    temp = [TNTHttpConnection unmanagedDelete: NitroConnectionTestsStubURL params: nil onDidStart: nil onSuccess: nil onError: nil];
     XCTAssertRequestHttpMethod( temp.lastRequest, TNTHttpMethodDelete );
     
-    temp = [TNTHttpConnection unmanagedDelete: NitroConnectionTestsStubURL withParams: nil headers: nil delegate: self];
+    temp = [TNTHttpConnection unmanagedDelete: NitroConnectionTestsStubURL queryString: nil body: nil delegate: self];
     XCTAssertRequestHttpMethod( temp.lastRequest, TNTHttpMethodDelete );
     
-    temp = [TNTHttpConnection unmanagedDelete: NitroConnectionTestsStubURL withParams: nil headers: nil onDidStart: nil onSuccess: nil onError: nil];
+    temp = [TNTHttpConnection unmanagedDelete: NitroConnectionTestsStubURL queryString: nil body: nil onDidStart: nil onSuccess: nil onError: nil];
     XCTAssertRequestHttpMethod( temp.lastRequest, TNTHttpMethodDelete );
 }
 
@@ -240,29 +274,17 @@ static NSString * const NitroConnectionTestsStubErrorURL = @"http://error.nitroc
     NSDictionary *params = @{ @"name": @"wolverine", @"mutant-power": @"healing factor" };
     
     // Managed
-    TNTHttpConnection *temp = [TNTHttpConnection delete: NitroConnectionTestsStubURL withParams: params delegate: self];
+    TNTHttpConnection *temp = [TNTHttpConnection delete: NitroConnectionTestsStubURL params: params delegate: self];
     XCTAssertRequestQueryString( temp.lastRequest, params );
     
-    temp = [TNTHttpConnection delete: NitroConnectionTestsStubURL withParams: params onDidStart: nil onSuccess: nil onError: nil];
-    XCTAssertRequestQueryString( temp.lastRequest, params );
-    
-    temp = [TNTHttpConnection delete: NitroConnectionTestsStubURL withParams: params headers: nil delegate: self];
-    XCTAssertRequestQueryString( temp.lastRequest, params );
-    
-    temp = [TNTHttpConnection delete: NitroConnectionTestsStubURL withParams: params headers: nil onDidStart: nil onSuccess: nil onError: nil];
+    temp = [TNTHttpConnection delete: NitroConnectionTestsStubURL params: params onDidStart: nil onSuccess: nil onError: nil];
     XCTAssertRequestQueryString( temp.lastRequest, params );
     
     // Unmanaged
-    temp = [TNTHttpConnection unmanagedDelete: NitroConnectionTestsStubURL withParams: params delegate: self];
+    temp = [TNTHttpConnection unmanagedDelete: NitroConnectionTestsStubURL params: params delegate: self];
     XCTAssertRequestQueryString( temp.lastRequest, params );
     
-    temp = [TNTHttpConnection unmanagedDelete: NitroConnectionTestsStubURL withParams: params onDidStart: nil onSuccess: nil onError: nil];
-    XCTAssertRequestQueryString( temp.lastRequest, params );
-    
-    temp = [TNTHttpConnection unmanagedDelete: NitroConnectionTestsStubURL withParams: params headers: nil delegate: self];
-    XCTAssertRequestQueryString( temp.lastRequest, params );
-    
-    temp = [TNTHttpConnection unmanagedDelete: NitroConnectionTestsStubURL withParams: params headers: nil onDidStart: nil onSuccess: nil onError: nil];
+    temp = [TNTHttpConnection unmanagedDelete: NitroConnectionTestsStubURL params: params onDidStart: nil onSuccess: nil onError: nil];
     XCTAssertRequestQueryString( temp.lastRequest, params );
 }
 
@@ -271,17 +293,17 @@ static NSString * const NitroConnectionTestsStubErrorURL = @"http://error.nitroc
     NSDictionary *headers = @{ @"name": @"wolverine", @"mutant-power": @"healing factor" };
     
     // Managed
-    TNTHttpConnection *temp = [TNTHttpConnection delete: NitroConnectionTestsStubURL withParams: nil headers: headers delegate: self];
+    TNTHttpConnection *temp = [TNTHttpConnection delete: NitroConnectionTestsStubURL queryString: nil body: nil headers: headers delegate: self];
     XCTAssertRequestHeaders( temp.lastRequest, headers );
     
-    temp = [TNTHttpConnection delete: NitroConnectionTestsStubURL withParams: nil headers: headers onDidStart: nil onSuccess: nil onError: nil];
+    temp = [TNTHttpConnection delete: NitroConnectionTestsStubURL queryString: nil body: nil headers: headers onDidStart: nil onSuccess: nil onError: nil];
     XCTAssertRequestHeaders( temp.lastRequest, headers );
     
     // Unmanaged
-    temp = [TNTHttpConnection unmanagedDelete: NitroConnectionTestsStubURL withParams: nil headers: headers delegate: self];
+    temp = [TNTHttpConnection unmanagedDelete: NitroConnectionTestsStubURL queryString: nil body: nil headers: headers delegate: self];
     XCTAssertRequestHeaders( temp.lastRequest, headers );
     
-    temp = [TNTHttpConnection unmanagedDelete: NitroConnectionTestsStubURL withParams: nil headers: headers onDidStart: nil onSuccess: nil onError: nil];
+    temp = [TNTHttpConnection unmanagedDelete: NitroConnectionTestsStubURL queryString: nil body: nil headers: headers onDidStart: nil onSuccess: nil onError: nil];
     XCTAssertRequestHeaders( temp.lastRequest, headers );
 }
 
