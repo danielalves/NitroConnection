@@ -220,13 +220,13 @@ typedef void( ^TNTHttpConnectionNotificationBlock )( TNTHttpConnection *httpConn
     if( url.length == 0 )
         return;
     
-    NSMutableURLRequest *request = nil;
-    
     if( queryString.count > 0 )
     {
         NSString *formattedQueryString = [queryString toQueryString];
         url = [url stringByAppendingFormat: @"?%@", formattedQueryString];
     }
+    
+    NSMutableURLRequest *request = [[NSMutableURLRequest alloc] initWithURL: [NSURL URLWithString: url]];
     
     if( body.length > 0 )
         [request setHTTPBody: body];
@@ -559,7 +559,7 @@ typedef void( ^TNTHttpConnectionNotificationBlock )( TNTHttpConnection *httpConn
         return;
     
     int address = ( int )connection;
-    
+
     [managedConnectionsSerializerQueue addOperations: @[
                                                            [NSBlockOperation blockOperationWithBlock: ^{
                                                                [managedConnections removeObjectForKey: @( address )];
