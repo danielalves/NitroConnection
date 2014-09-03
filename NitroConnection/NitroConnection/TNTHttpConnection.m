@@ -40,7 +40,7 @@ static NSTimeInterval TNTHttpConnectionDefaultTimeoutInterval;
 static NSURLRequestCachePolicy TNTHttpConnectionDefaultCachePolicy;
 
 static NSMutableDictionary *managedConnections;
-static NSLock *managedConnectionsLock;
+static NSOperationQueue *managedConnectionsSerializerQueue;
 
 #pragma mark - Helper Types
 
@@ -146,7 +146,10 @@ typedef void( ^TNTHttpConnectionNotificationBlock )( TNTHttpConnection *httpConn
         TNTHttpConnectionDefaultCachePolicy = NSURLRequestUseProtocolCachePolicy;
         
         managedConnections = [NSMutableDictionary new];
-        managedConnectionsLock = [NSLock new];
+        
+        managedConnectionsSerializerQueue = [NSOperationQueue new];
+        managedConnectionsSerializerQueue.maxConcurrentOperationCount = 1;
+        managedConnectionsSerializerQueue.name = [NSString stringWithFormat: @"%@ManagedConnectionsSerializerQueue", NSStringFromClass( [self class] )];
     }
 }
 
@@ -557,12 +560,14 @@ typedef void( ^TNTHttpConnectionNotificationBlock )( TNTHttpConnection *httpConn
     if( !connection )
         return;
     
-    [managedConnectionsLock lock];
-
     int address = ( int )connection;
-    managedConnections[@( address )] = connection;
     
-    [managedConnectionsLock unlock];
+    [managedConnectionsSerializerQueue addOperations: @[
+                                                           [NSBlockOperation blockOperationWithBlock: ^{
+                                                               managedConnections[@( address )] = connection;
+                                                           }]
+                                                       ]
+                                   waitUntilFinished: YES];
 }
 
 +( void )stopManagingConnection:( TNTHttpConnection * )connection
@@ -570,12 +575,14 @@ typedef void( ^TNTHttpConnectionNotificationBlock )( TNTHttpConnection *httpConn
     if( !connection )
         return;
     
-    [managedConnectionsLock lock];
-
     int address = ( int )connection;
-    [managedConnections removeObjectForKey: @( address )];
-
-    [managedConnectionsLock unlock];
+    
+    [managedConnectionsSerializerQueue addOperations: @[
+                                                           [NSBlockOperation blockOperationWithBlock: ^{
+                                                               [managedConnections removeObjectForKey: @( address )];
+                                                           }]
+                                                       ]
+                                   waitUntilFinished: YES];
 }
 
 +( void )setDefaultCachePolicy:( NSURLRequestCachePolicy )_cachePolicy
