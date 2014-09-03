@@ -50,7 +50,7 @@
 
 -( BOOL )waitForAsyncOperationOrTimeoutWithDefaultInterval
 {
-    return [self waitForAsyncOperationOrTimeoutWithInterval: 20];
+    return [self waitForAsyncOperationOrTimeoutWithInterval: 6];
 }
 
 -( BOOL )waitForAsyncOperationOrTimeoutWithInterval:(NSTimeInterval)interval
@@ -59,7 +59,7 @@
     // wait for the semaphore to be signaled (triggered)
     while (dispatch_semaphore_wait(_networkSemaphore, DISPATCH_TIME_NOW))
     {
-        [[NSRunLoop currentRunLoop] runMode:NSDefaultRunLoopMode beforeDate:[NSDate dateWithTimeIntervalSinceNow:10]];
+        [[NSRunLoop currentRunLoop] runMode:NSDefaultRunLoopMode beforeDate:[NSDate dateWithTimeIntervalSinceNow:3]];
     }
     return _didTimeout;
 }
