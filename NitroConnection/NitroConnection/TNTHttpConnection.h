@@ -118,7 +118,7 @@ typedef void ( ^TNTHttpConnectionErrorBlock )( TNTHttpConnection *connection, NS
  *
  *  - Thread safety.
  *  - It supports GET, HEAD, DELETE, POST, PUT and PATCH HTTP methods.
- *  - Easy query string, body params and headers configuration.
+ *  - Easy query string, body and headers configuration.
  *  - Global, per connection and per request cache policy and timeout interval configuration.
  *  - Its callbacks come in two flavors: via delegate and via blocks.
  *  - A single NitroConnection can be used to make any number of requests.
@@ -198,8 +198,8 @@ typedef void ( ^TNTHttpConnectionErrorBlock )( TNTHttpConnection *connection, NS
  *                 reference to the connection to keep it alive.
  *
  *  @see -startRequest:managed:onDidStart:onSuccess:onError:
- *  @see -startRequestWithMethod:url:params:headers:managed:
- *  @see -startRequestWithMethod:url:params:headers:managed:onDidStart:onSuccess:onError:
+ *  @see -startRequestWithMethod:url:queryString:body:headers:managed:
+ *  @see -startRequestWithMethod:url:queryString:body:headers:managed:onDidStart:onSuccess:onError:
  *  @see -cancelRequest
  *  @see -retryRequest
  */
@@ -230,8 +230,8 @@ typedef void ( ^TNTHttpConnectionErrorBlock )( TNTHttpConnection *connection, NS
  *                       from which the request was started. This parameter can be nil.
  *
  *  @see -startRequest:managed:
- *  @see -startRequestWithMethod:url:params:headers:managed:
- *  @see -startRequestWithMethod:url:params:headers:managed:onDidStart:onSuccess:onError:
+ *  @see -startRequestWithMethod:url:queryString:body:headers:managed:
+ *  @see -startRequestWithMethod:url:queryString:body:headers:managed:onDidStart:onSuccess:onError:
  *  @see -cancelRequest
  *  @see -retryRequest
  */
@@ -245,39 +245,39 @@ typedef void ( ^TNTHttpConnectionErrorBlock )( TNTHttpConnection *connection, NS
  *  Starts a new request. If there is already a request being made, cancels it
  *  and then starts the new one.
  *
- *  @param httpMethod The HTTP request method.
+ *  @param httpMethod  The HTTP request method.
  *
- *  @param url        The URL of the request. If this parameter is nil, this method does nothing.
+ *  @param url         The URL of the request. If this parameter is nil, this method does nothing.
  *
- *  @param params     The parameters of the request. If httpMethod is TNTHttpMethodGet, TNTHttpMethodHead
- *                    or TNTHttpMethodDelete, sends the parameters in the query string. If httpMethod is
- *                    TNTHttpMethodPost, TNTHttpMethodPut or TNTHttpMethodPatch, sends the parameters in
- *                    the request body. This parameter can be nil.
+ *  @param queryString The request query string. All keys and values will be escaped. This parameter can be nil.
  *
- *  @param headers    HTTP headers that should be added to the request HTTP header dictionary. In keeping with
- *                    the HTTP RFC, HTTP header field names are case-insensitive. Values are added to header fields
- *                    incrementally. If a value was previously set for the specified field, the supplied value is
- *                    appended to the existing value using the HTTP field delimiter, a comma. Additionally, the
- *                    length of the upload body is determined automatically, then the value of Content-Length is set
- *                    for you. You should not modify the following headers: Authorization, Connection, Host and
- *                    WWW-Authenticate. This parameter can be nil.
+ *  @param body        The request body data. This parameter can be nil.
  *
- *  @param managed    If the request is managed or not. Managed requests make their connections live outside
- *                    the scope in which they were created, while unmanaged requests do not. If you do not cancel a
- *                    managed request prior to its end, it will run until it fails or succeeds. As for unmanaged
- *                    requests, there is no need to cancel them explicitly, since this will be done automatically
- *                    when the scope in which their connections were created is left - therefore you must keep a strong
- *                    reference to the connection to keep it alive.
+ *  @param headers     HTTP headers that should be added to the request HTTP header dictionary. In keeping with
+ *                     the HTTP RFC, HTTP header field names are case-insensitive. Values are added to header fields
+ *                     incrementally. If a value was previously set for the specified field, the supplied value is
+ *                     appended to the existing value using the HTTP field delimiter, a comma. Additionally, the
+ *                     length of the upload body is determined automatically, then the value of Content-Length is set
+ *                     for you. You should not modify the following headers: Authorization, Connection, Host and
+ *                     WWW-Authenticate. This parameter can be nil.
+ *
+ *  @param managed     If the request is managed or not. Managed requests make their connections live outside
+ *                     the scope in which they were created, while unmanaged requests do not. If you do not cancel a
+ *                     managed request prior to its end, it will run until it fails or succeeds. As for unmanaged
+ *                     requests, there is no need to cancel them explicitly, since this will be done automatically
+ *                     when the scope in which their connections were created is left - therefore you must keep a strong
+ *                     reference to the connection to keep it alive.
  *
  *  @see -startRequest:managed:
  *  @see -startRequest:managed:onDidStart:onSuccess:onError:
- *  @see -startRequestWithMethod:url:params:headers:managed:onDidStart:onSuccess:onError:
+ *  @see -startRequestWithMethod:url:queryString:body:headers:managed:onDidStart:onSuccess:onError:
  *  @see -cancelRequest
  *  @see -retryRequest
  */
 -( void )startRequestWithMethod:( TNTHttpMethod )httpMethod
                             url:( NSString * )url
-                         params:( NSDictionary * )params
+                    queryString:( NSDictionary * )queryString
+                           body:( NSData * )body
                         headers:( NSDictionary * )headers
                         managed:( BOOL )managed;
 
@@ -289,10 +289,9 @@ typedef void ( ^TNTHttpConnectionErrorBlock )( TNTHttpConnection *connection, NS
  *
  *  @param url           The URL of the request. If this parameter is nil, this method does nothing.
  *
- *  @param params        The parameters of the request. If httpMethod is TNTHttpMethodGet, TNTHttpMethodHead 
- *                       or TNTHttpMethodDelete, sends the parameters in the query string. If httpMethod is
- *                       TNTHttpMethodPost, TNTHttpMethodPut or TNTHttpMethodPatch, sends the parameters in
- *                       the request body. This parameter can be nil.
+ *  @param queryString   The request query string. All keys and values will be escaped. This parameter can be nil.
+ *
+ *  @param body          The request body data. This parameter can be nil.
  *
  *  @param headers       HTTP headers that should be added to the request HTTP header dictionary.  In keeping with 
  *                       the HTTP RFC, HTTP header field names are case-insensitive. Values are added to header fields
@@ -320,13 +319,14 @@ typedef void ( ^TNTHttpConnectionErrorBlock )( TNTHttpConnection *connection, NS
  *
  *  @see -startRequest:managed:
  *  @see -startRequest:managed:onDidStart:onSuccess:onError:
- *  @see -startRequestWithMethod:url:params:headers:managed:
+ *  @see -startRequestWithMethod:url:queryString:body:headers:managed:
  *  @see -cancelRequest
  *  @see -retryRequest
  */
 -( void )startRequestWithMethod:( TNTHttpMethod )httpMethod
                             url:( NSString * )url
-                         params:( NSDictionary * )params
+                    queryString:( NSDictionary * )queryString
+                           body:( NSData * )body
                         headers:( NSDictionary * )headers
                         managed:( BOOL )managed
                      onDidStart:( TNTHttpConnectionDidStartBlock )didStartBlock

@@ -13,10 +13,10 @@
 
 #define XCTAssertRequestHttpMethod( request, httpMethod ) XCTAssertEqualObjects( request.HTTPMethod, [NSString stringFromHttpMethod: httpMethod] )
 
-#define XCTAssertRequestQueryString( request, queryStringParams )                                                            \
-{                                                                                                                            \
-    BOOL ret = [temp.lastRequest.URL.absoluteString hasSuffix: [NSString stringWithFormat: @"?%@", [params toQueryString]]]; \
-    XCTAssertTrue( ret );                                                                                                    \
+#define XCTAssertRequestQueryString( request, queryStringParams )                                                                       \
+{                                                                                                                                       \
+    BOOL ret = [temp.lastRequest.URL.absoluteString hasSuffix: [NSString stringWithFormat: @"?%@", [queryStringParams toQueryString]]]; \
+    XCTAssertTrue( ret );                                                                                                               \
 }
 
 #define XCTAssertRequestHeaders( request, headers )                  \
@@ -29,9 +29,9 @@
     }                                                                \
 }
 
-#define XCTAssertRequestBody( request, params )                                 \
+#define XCTAssertRequestBody( request, bodyParams )                             \
 {                                                                               \
-    NSString *formattedParams = [params toQueryString];                         \
+    NSString *formattedParams = [bodyParams toQueryString];                     \
     NSData *data = [formattedParams dataUsingEncoding: NSUTF8StringEncoding];   \
     XCTAssertTrue( [temp.lastRequest.HTTPBody isEqualToData: data] );           \
 }

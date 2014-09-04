@@ -138,7 +138,7 @@ static NSTimeInterval originalTimeoutInterval;
         @autoreleasepool
         {
             TNTHttpConnection *temp = [TNTHttpConnection new];
-            [temp startRequestWithMethod: currentMethod url: NitroConnectionTestsStubURL params: nil headers: nil managed: YES];
+            [temp startRequestWithMethod: currentMethod url: NitroConnectionTestsStubURL queryString: nil body: nil headers: nil managed: YES];
             weakConnection = temp;
         };
         XCTAssertNotNil( weakConnection );
@@ -146,7 +146,7 @@ static NSTimeInterval originalTimeoutInterval;
         @autoreleasepool
         {
             TNTHttpConnection *temp = [TNTHttpConnection new];
-            [temp startRequestWithMethod: currentMethod url: NitroConnectionTestsStubURL params: nil headers: nil managed: YES];
+            [temp startRequestWithMethod: currentMethod url: NitroConnectionTestsStubURL queryString: nil body: nil headers: nil managed: YES onDidStart: nil onSuccess: nil onError: nil];
             weakConnection = temp;
         };
         XCTAssertNotNil( weakConnection );
@@ -182,7 +182,7 @@ static NSTimeInterval originalTimeoutInterval;
         @autoreleasepool
         {
             TNTHttpConnection *temp = [TNTHttpConnection new];
-            [temp startRequestWithMethod: currentMethod url: NitroConnectionTestsStubURL params: nil headers: nil managed: NO];
+            [temp startRequestWithMethod: currentMethod url: NitroConnectionTestsStubURL queryString: nil body: nil headers: nil managed: NO];
             weakConnection = temp;
         };
         XCTAssertNil( weakConnection );
@@ -190,7 +190,7 @@ static NSTimeInterval originalTimeoutInterval;
         @autoreleasepool
         {
             TNTHttpConnection *temp = [TNTHttpConnection new];
-            [temp startRequestWithMethod: currentMethod url: NitroConnectionTestsStubURL params: nil headers: nil managed: NO];
+            [temp startRequestWithMethod: currentMethod url: NitroConnectionTestsStubURL queryString: nil body: nil headers: nil managed: NO onDidStart: nil onSuccess: nil onError: nil];
             weakConnection = temp;
         };
         XCTAssertNil( weakConnection );
@@ -199,138 +199,114 @@ static NSTimeInterval originalTimeoutInterval;
 
 -( void )test_requests_use_correct_http_method
 {
-    for( NSNumber *boxedHttpMethod in httpMethods )
+    BOOL managed = NO;
+    do
     {
-        TNTHttpMethod currentMethod = [boxedHttpMethod unsignedIntegerValue];
-        
-        [successRequest setHTTPMethod: [NSString stringFromHttpMethod: currentMethod]];
+        for( NSNumber *boxedHttpMethod in httpMethods )
+        {
+            TNTHttpMethod currentMethod = [boxedHttpMethod unsignedIntegerValue];
+            
+            [successRequest setHTTPMethod: [NSString stringFromHttpMethod: currentMethod]];
 
-        TNTHttpConnection *temp = [TNTHttpConnection new];
-        [temp startRequest: successRequest managed: NO];
-        XCTAssertRequestHttpMethod( temp.lastRequest, currentMethod );
-        
-        temp = [TNTHttpConnection new];
-        [temp startRequest: successRequest managed: NO onDidStart: nil onSuccess: nil onError: nil];
-        XCTAssertRequestHttpMethod( temp.lastRequest, currentMethod );
-        
-        temp = [TNTHttpConnection new];
-        [temp startRequestWithMethod: currentMethod url: NitroConnectionTestsStubURL params: nil headers: nil managed: NO];
-        XCTAssertRequestHttpMethod( temp.lastRequest, currentMethod );
-        
-        temp = [TNTHttpConnection new];
-        [temp startRequestWithMethod: currentMethod url: NitroConnectionTestsStubURL params: nil headers: nil managed: NO];
-        XCTAssertRequestHttpMethod( temp.lastRequest, currentMethod );
+            TNTHttpConnection *temp = [TNTHttpConnection new];
+            [temp startRequest: successRequest managed: managed];
+            XCTAssertRequestHttpMethod( temp.lastRequest, currentMethod );
+            
+            temp = [TNTHttpConnection new];
+            [temp startRequest: successRequest managed: managed onDidStart: nil onSuccess: nil onError: nil];
+            XCTAssertRequestHttpMethod( temp.lastRequest, currentMethod );
+            
+            temp = [TNTHttpConnection new];
+            [temp startRequestWithMethod: currentMethod url: NitroConnectionTestsStubURL queryString: nil body: nil headers: nil managed: managed];
+            XCTAssertRequestHttpMethod( temp.lastRequest, currentMethod );
+            
+            temp = [TNTHttpConnection new];
+            [temp startRequestWithMethod: currentMethod url: NitroConnectionTestsStubURL queryString: nil body: nil headers: nil managed: managed onDidStart: nil onSuccess: nil onError: nil];
+            XCTAssertRequestHttpMethod( temp.lastRequest, currentMethod );
+        }
+        managed = !managed;
     }
-}
-
--( void )test_get_requests_pass_params_in_query_string
-{
-    NSDictionary *params = @{ @"name": @"colossus", @"mutant-power": @"iron skin, super strength" };
-    
-    [successRequest setHTTPMethod: [NSString stringFromHttpMethod: TNTHttpMethodGet]];
-
-    TNTHttpConnection *temp = [TNTHttpConnection new];
-    [temp startRequestWithMethod: TNTHttpMethodGet url: NitroConnectionTestsStubURL params: params headers: nil managed: NO];
-    XCTAssertRequestQueryString( temp.lastRequest, params );
-    
-    temp = [TNTHttpConnection new];
-    [temp startRequestWithMethod: TNTHttpMethodGet url: NitroConnectionTestsStubURL params: params headers: nil managed: NO];
-    XCTAssertRequestQueryString( temp.lastRequest, params );
-}
-
--( void )test_head_requests_pass_params_in_query_string
-{
-    NSDictionary *params = @{ @"name": @"colossus", @"mutant-power": @"iron skin, super strength" };
-    
-    [successRequest setHTTPMethod: [NSString stringFromHttpMethod: TNTHttpMethodHead]];
-    
-    TNTHttpConnection *temp = [TNTHttpConnection new];
-    [temp startRequestWithMethod: TNTHttpMethodHead url: NitroConnectionTestsStubURL params: params headers: nil managed: NO];
-    XCTAssertRequestQueryString( temp.lastRequest, params );
-    
-    temp = [TNTHttpConnection new];
-    [temp startRequestWithMethod: TNTHttpMethodHead url: NitroConnectionTestsStubURL params: params headers: nil managed: NO];
-    XCTAssertRequestQueryString( temp.lastRequest, params );
-}
-
--( void )test_delete_requests_pass_params_in_query_string
-{
-    NSDictionary *params = @{ @"name": @"colossus", @"mutant-power": @"iron skin, super strength" };
-    
-    [successRequest setHTTPMethod: [NSString stringFromHttpMethod: TNTHttpMethodDelete]];
-
-    TNTHttpConnection *temp = [TNTHttpConnection new];
-    [temp startRequestWithMethod: TNTHttpMethodDelete url: NitroConnectionTestsStubURL params: params headers: nil managed: NO];
-    XCTAssertRequestQueryString( temp.lastRequest, params );
-    
-    temp = [TNTHttpConnection new];
-    [temp startRequestWithMethod: TNTHttpMethodDelete url: NitroConnectionTestsStubURL params: params headers: nil managed: NO];
-    XCTAssertRequestQueryString( temp.lastRequest, params );
-}
-
--( void )test_post_requests_pass_params_in_request_body
-{
-    NSDictionary *params = @{ @"name": @"colossus", @"mutant-power": @"iron skin, super strength" };
-    
-    [successRequest setHTTPMethod: [NSString stringFromHttpMethod: TNTHttpMethodPost]];
-
-    TNTHttpConnection *temp = [TNTHttpConnection new];
-    [temp startRequestWithMethod: TNTHttpMethodPost url: NitroConnectionTestsStubURL params: params headers: nil managed: NO];
-    XCTAssertRequestBody( temp.lastRequest, params );
-    
-    temp = [TNTHttpConnection new];
-    [temp startRequestWithMethod: TNTHttpMethodPost url: NitroConnectionTestsStubURL params: params headers: nil managed: NO];
-    XCTAssertRequestBody( temp.lastRequest, params );
-}
-
--( void )test_put_requests_pass_params_in_request_body
-{
-    NSDictionary *params = @{ @"name": @"colossus", @"mutant-power": @"iron skin, super strength" };
-    
-    [successRequest setHTTPMethod: [NSString stringFromHttpMethod: TNTHttpMethodPut]];
-
-    TNTHttpConnection *temp = [TNTHttpConnection new];
-    [temp startRequestWithMethod: TNTHttpMethodPut url: NitroConnectionTestsStubURL params: params headers: nil managed: NO];
-    XCTAssertRequestBody( temp.lastRequest, params );
-    
-    temp = [TNTHttpConnection new];
-    [temp startRequestWithMethod: TNTHttpMethodPut url: NitroConnectionTestsStubURL params: params headers: nil managed: NO];
-    XCTAssertRequestBody( temp.lastRequest, params );
-}
-
--( void )test_patch_requests_pass_params_in_request_body
-{
-    NSDictionary *params = @{ @"name": @"colossus", @"mutant-power": @"iron skin, super strength" };
-    
-    [successRequest setHTTPMethod: [NSString stringFromHttpMethod: TNTHttpMethodPatch]];
-
-    TNTHttpConnection *temp = [TNTHttpConnection new];
-    [temp startRequestWithMethod: TNTHttpMethodPatch url: NitroConnectionTestsStubURL params: params headers: nil managed: NO];
-    XCTAssertRequestBody( temp.lastRequest, params );
-    
-    temp = [TNTHttpConnection new];
-    [temp startRequestWithMethod: TNTHttpMethodPatch url: NitroConnectionTestsStubURL params: params headers: nil managed: NO];
-    XCTAssertRequestBody( temp.lastRequest, params );
+    while( managed );
 }
 
 -( void )test_requests_send_headers
 {
     NSDictionary *headers = @{ @"name": @"colossus", @"mutant-power": @"iron skin, super strength" };
-
-    for( NSNumber *boxedHttpMethod in httpMethods )
+    
+    BOOL managed = NO;
+    do
     {
-        TNTHttpMethod currentMethod = [boxedHttpMethod unsignedIntegerValue];
-        
-        [successRequest setHTTPMethod: [NSString stringFromHttpMethod: currentMethod]];
+        for( NSNumber *boxedHttpMethod in httpMethods )
+        {
+            TNTHttpMethod currentMethod = [boxedHttpMethod unsignedIntegerValue];
+            
+            [successRequest setHTTPMethod: [NSString stringFromHttpMethod: currentMethod]];
 
-        TNTHttpConnection *temp = [TNTHttpConnection new];
-        [temp startRequestWithMethod: currentMethod url: NitroConnectionTestsStubURL params: nil headers: headers managed: NO];
-        XCTAssertRequestHeaders( temp.lastRequest, headers );
-        
-        temp = [TNTHttpConnection new];
-        [temp startRequestWithMethod: currentMethod url: NitroConnectionTestsStubURL params: nil headers: headers managed: NO];
-        XCTAssertRequestHeaders( temp.lastRequest, headers );
+            TNTHttpConnection *temp = [TNTHttpConnection new];
+            [temp startRequestWithMethod: currentMethod url: NitroConnectionTestsStubURL queryString: nil body: nil headers: headers managed: managed];
+            XCTAssertRequestHeaders( temp.lastRequest, headers );
+            
+            temp = [TNTHttpConnection new];
+            [temp startRequestWithMethod: currentMethod url: NitroConnectionTestsStubURL queryString: nil body: nil headers: headers managed: managed onDidStart: nil onSuccess: nil onError: nil];
+            XCTAssertRequestHeaders( temp.lastRequest, headers );
+        }
+        managed = !managed;
     }
+    while( managed );
+}
+
+-( void )test_requests_append_query_string
+{
+    NSDictionary *queryString = @{ @"name": @"rogue", @"mutant-power": @"steal other powers and memories" };
+
+    BOOL managed = NO;
+    do
+    {
+        for( NSNumber *boxedHttpMethod in httpMethods )
+        {
+            TNTHttpMethod currentMethod = [boxedHttpMethod unsignedIntegerValue];
+            
+            [successRequest setHTTPMethod: [NSString stringFromHttpMethod: currentMethod]];
+            
+            TNTHttpConnection *temp = [TNTHttpConnection new];
+            [temp startRequestWithMethod: currentMethod url: NitroConnectionTestsStubURL queryString: queryString body: nil headers: nil managed: managed];
+            XCTAssertRequestQueryString( temp.lastRequest, queryString );
+            
+            temp = [TNTHttpConnection new];
+            [temp startRequestWithMethod: currentMethod url: NitroConnectionTestsStubURL queryString: queryString body: nil headers: nil managed: managed onDidStart: nil onSuccess: nil onError: nil];
+            XCTAssertRequestQueryString( temp.lastRequest, queryString );
+        }
+        managed = !managed;
+    }
+    while( managed );
+}
+
+-( void )test_requests_send_body
+{
+    NSDictionary *bodyParams = @{ @"name": @"ice man", @"mutant-power": @"generate ice" };
+    NSString *formattedParams = [bodyParams toQueryString];
+    NSData *bodyData = [formattedParams dataUsingEncoding: NSUTF8StringEncoding];
+
+    BOOL managed = NO;
+    do
+    {
+        for( NSNumber *boxedHttpMethod in httpMethods )
+        {
+            TNTHttpMethod currentMethod = [boxedHttpMethod unsignedIntegerValue];
+            
+            [successRequest setHTTPMethod: [NSString stringFromHttpMethod: currentMethod]];
+            
+            TNTHttpConnection *temp = [TNTHttpConnection new];
+            [temp startRequestWithMethod: currentMethod url: NitroConnectionTestsStubURL queryString: nil body: bodyData headers: nil managed: managed];
+            XCTAssertRequestBody( temp.lastRequest, bodyParams );
+            
+            temp = [TNTHttpConnection new];
+            [temp startRequestWithMethod: currentMethod url: NitroConnectionTestsStubURL queryString: nil body: bodyData headers: nil managed: managed onDidStart: nil onSuccess: nil onError: nil];
+            XCTAssertRequestBody( temp.lastRequest, bodyParams );
+        }
+        managed = !managed;
+    }
+    while( managed );
 }
 
 -( void )test_calls_delegate_on_start
@@ -338,25 +314,31 @@ static NSTimeInterval originalTimeoutInterval;
     connection = [TNTHttpConnection new];
     connection.delegate = self;
     
-    for( NSNumber *boxedHttpMethod in httpMethods )
+    BOOL managed = NO;
+    do
     {
-        TNTHttpMethod currentMethod = [boxedHttpMethod unsignedIntegerValue];
-        [successRequest setHTTPMethod: [NSString stringFromHttpMethod: currentMethod]];
-        
-        [self waitForAsyncCode: ^{
-            [connection startRequest: successRequest managed: NO];
-        }];
-        
-        XCTAssertTrue( delegateDidStartCalled );
-        delegateDidStartCalled = NO;
+        for( NSNumber *boxedHttpMethod in httpMethods )
+        {
+            TNTHttpMethod currentMethod = [boxedHttpMethod unsignedIntegerValue];
+            [successRequest setHTTPMethod: [NSString stringFromHttpMethod: currentMethod]];
+            
+            [self waitForAsyncCode: ^{
+                [connection startRequest: successRequest managed: managed];
+            }];
+            
+            XCTAssertTrue( delegateDidStartCalled );
+            delegateDidStartCalled = NO;
 
-        [self waitForAsyncCode: ^{
-            [connection startRequestWithMethod: currentMethod url: NitroConnectionTestsStubURL params: nil headers: nil managed: NO];
-        }];
-        
-        XCTAssertTrue( delegateDidStartCalled );
-        delegateDidStartCalled = NO;
+            [self waitForAsyncCode: ^{
+                [connection startRequestWithMethod: currentMethod url: NitroConnectionTestsStubURL queryString: nil body: nil headers: nil managed: managed];
+            }];
+            
+            XCTAssertTrue( delegateDidStartCalled );
+            delegateDidStartCalled = NO;
+        }
+        managed = !managed;
     }
+    while( managed );
 }
 
 -( void )test_calls_delegate_on_success
@@ -364,25 +346,31 @@ static NSTimeInterval originalTimeoutInterval;
     connection = [TNTHttpConnection new];
     connection.delegate = self;
     
-    for( NSNumber *boxedHttpMethod in httpMethods )
+    BOOL managed = NO;
+    do
     {
-        TNTHttpMethod currentMethod = [boxedHttpMethod unsignedIntegerValue];
-        [successRequest setHTTPMethod: [NSString stringFromHttpMethod: currentMethod]];
-        
-        [self waitForAsyncCode: ^{
-            [connection startRequest: successRequest managed: NO];
-        }];
-        
-        XCTAssertTrue( delegateOnSuccessCalled );
-        delegateOnSuccessCalled = NO;
-        
-        [self waitForAsyncCode: ^{
-            [connection startRequestWithMethod: currentMethod url: NitroConnectionTestsStubURL params: nil headers: nil managed: NO];
-        }];
-        
-        XCTAssertTrue( delegateOnSuccessCalled );
-        delegateOnSuccessCalled = NO;
+        for( NSNumber *boxedHttpMethod in httpMethods )
+        {
+            TNTHttpMethod currentMethod = [boxedHttpMethod unsignedIntegerValue];
+            [successRequest setHTTPMethod: [NSString stringFromHttpMethod: currentMethod]];
+            
+            [self waitForAsyncCode: ^{
+                [connection startRequest: successRequest managed: managed];
+            }];
+            
+            XCTAssertTrue( delegateOnSuccessCalled );
+            delegateOnSuccessCalled = NO;
+            
+            [self waitForAsyncCode: ^{
+                [connection startRequestWithMethod: currentMethod url: NitroConnectionTestsStubURL queryString: nil body: nil headers: nil managed: managed];
+            }];
+            
+            XCTAssertTrue( delegateOnSuccessCalled );
+            delegateOnSuccessCalled = NO;
+        }
+        managed = !managed;
     }
+    while( managed );
 }
 
 -( void )test_calls_delegate_on_error
@@ -390,25 +378,31 @@ static NSTimeInterval originalTimeoutInterval;
     connection = [TNTHttpConnection new];
     connection.delegate = self;
     
-    for( NSNumber *boxedHttpMethod in httpMethods )
+    BOOL managed = NO;
+    do
     {
-        TNTHttpMethod currentMethod = [boxedHttpMethod unsignedIntegerValue];
-        [errorRequest setHTTPMethod: [NSString stringFromHttpMethod: currentMethod]];
-        
-        [self waitForAsyncCode: ^{
-            [connection startRequest: errorRequest managed: NO];
-        }];
-        
-        XCTAssertTrue( delegateOnErrorCalled );
-        delegateOnErrorCalled = NO;
-        
-        [self waitForAsyncCode: ^{
-            [connection startRequestWithMethod: currentMethod url: NitroConnectionTestsStubErrorURL params: nil headers: nil managed: NO];
-        }];
-        
-        XCTAssertTrue( delegateOnErrorCalled );
-        delegateOnErrorCalled = NO;
+        for( NSNumber *boxedHttpMethod in httpMethods )
+        {
+            TNTHttpMethod currentMethod = [boxedHttpMethod unsignedIntegerValue];
+            [errorRequest setHTTPMethod: [NSString stringFromHttpMethod: currentMethod]];
+            
+            [self waitForAsyncCode: ^{
+                [connection startRequest: errorRequest managed: managed];
+            }];
+            
+            XCTAssertTrue( delegateOnErrorCalled );
+            delegateOnErrorCalled = NO;
+            
+            [self waitForAsyncCode: ^{
+                [connection startRequestWithMethod: currentMethod url: NitroConnectionTestsStubErrorURL queryString: nil body: nil headers: nil managed: managed];
+            }];
+            
+            XCTAssertTrue( delegateOnErrorCalled );
+            delegateOnErrorCalled = NO;
+        }
+        managed = !managed;
     }
+    while( managed );
 }
 
 -( void )test_calls_did_start_block_on_start
@@ -416,42 +410,49 @@ static NSTimeInterval originalTimeoutInterval;
     connection = [TNTHttpConnection new];
     connection.delegate = self;
     
-    for( NSNumber *boxedHttpMethod in httpMethods )
+    BOOL managed = NO;
+    do
     {
-        TNTHttpMethod currentMethod = [boxedHttpMethod unsignedIntegerValue];
-        [successRequest setHTTPMethod: [NSString stringFromHttpMethod: currentMethod]];
-        
-        [self waitForAsyncCode: ^{
-            [connection startRequest: successRequest
-                             managed: NO
-                          onDidStart: ^( TNTHttpConnection *conn ){
-                              didStartBlockRan = YES;
-                              [self finishedAsyncOperation];
-                           }
-                           onSuccess: nil
-                             onError: nil];
-        }];
-        
-        XCTAssertTrue( didStartBlockRan );
-        didStartBlockRan = NO;
-        
-        [self waitForAsyncCode: ^{
-            [connection startRequestWithMethod: currentMethod
-                                           url: NitroConnectionTestsStubURL
-                                        params: nil
-                                       headers: nil
-                                       managed: NO
-                                    onDidStart: ^( TNTHttpConnection *conn ){
-                                        didStartBlockRan = YES;
-                                        [self finishedAsyncOperation];
-                                     }
-                                     onSuccess: nil
-                                       onError: nil];
-        }];
-        
-        XCTAssertTrue( didStartBlockRan );
-        didStartBlockRan = NO;
+        for( NSNumber *boxedHttpMethod in httpMethods )
+        {
+            TNTHttpMethod currentMethod = [boxedHttpMethod unsignedIntegerValue];
+            [successRequest setHTTPMethod: [NSString stringFromHttpMethod: currentMethod]];
+            
+            [self waitForAsyncCode: ^{
+                [connection startRequest: successRequest
+                                 managed: managed
+                              onDidStart: ^( TNTHttpConnection *conn ){
+                                  didStartBlockRan = YES;
+                                  [self finishedAsyncOperation];
+                               }
+                               onSuccess: nil
+                                 onError: nil];
+            }];
+            
+            XCTAssertTrue( didStartBlockRan );
+            didStartBlockRan = NO;
+            
+            [self waitForAsyncCode: ^{
+                [connection startRequestWithMethod: currentMethod
+                                               url: NitroConnectionTestsStubURL
+                                       queryString: nil
+                                              body: nil
+                                           headers: nil
+                                           managed: managed
+                                        onDidStart: ^( TNTHttpConnection *conn ){
+                                            didStartBlockRan = YES;
+                                            [self finishedAsyncOperation];
+                                         }
+                                         onSuccess: nil
+                                           onError: nil];
+            }];
+            
+            XCTAssertTrue( didStartBlockRan );
+            didStartBlockRan = NO;
+        }
+        managed = !managed;
     }
+    while( managed );
 }
 
 -( void )test_calls_success_block_on_success
@@ -459,42 +460,49 @@ static NSTimeInterval originalTimeoutInterval;
     connection = [TNTHttpConnection new];
     connection.delegate = self;
     
-    for( NSNumber *boxedHttpMethod in httpMethods )
+    BOOL managed = NO;
+    do
     {
-        TNTHttpMethod currentMethod = [boxedHttpMethod unsignedIntegerValue];
-        [successRequest setHTTPMethod: [NSString stringFromHttpMethod: currentMethod]];
-        
-        [self waitForAsyncCode: ^{
-            [connection startRequest: successRequest
-                             managed: NO
-                          onDidStart: nil
-                           onSuccess: ^( TNTHttpConnection *conn, NSHTTPURLResponse *response, NSData *data ) {
-                               onSuccessBlockRan = YES;
-                               [self finishedAsyncOperation];
-                             }
-                             onError: nil];
-        }];
-        
-        XCTAssertTrue( onSuccessBlockRan );
-        onSuccessBlockRan = NO;
-        
-        [self waitForAsyncCode: ^{
-            [connection startRequestWithMethod: currentMethod
-                                           url: NitroConnectionTestsStubURL
-                                        params: nil
-                                       headers: nil
-                                       managed: NO
-                                    onDidStart: nil
-                                     onSuccess: ^( TNTHttpConnection *conn, NSHTTPURLResponse *response, NSData *data ) {
-                                         onSuccessBlockRan = YES;
-                                         [self finishedAsyncOperation];
-                                       }
-                                       onError: nil];
-        }];
-        
-        XCTAssertTrue( onSuccessBlockRan );
-        onSuccessBlockRan = NO;
+        for( NSNumber *boxedHttpMethod in httpMethods )
+        {
+            TNTHttpMethod currentMethod = [boxedHttpMethod unsignedIntegerValue];
+            [successRequest setHTTPMethod: [NSString stringFromHttpMethod: currentMethod]];
+            
+            [self waitForAsyncCode: ^{
+                [connection startRequest: successRequest
+                                 managed: managed
+                              onDidStart: nil
+                               onSuccess: ^( TNTHttpConnection *conn, NSHTTPURLResponse *response, NSData *data ) {
+                                   onSuccessBlockRan = YES;
+                                   [self finishedAsyncOperation];
+                                 }
+                                 onError: nil];
+            }];
+            
+            XCTAssertTrue( onSuccessBlockRan );
+            onSuccessBlockRan = NO;
+            
+            [self waitForAsyncCode: ^{
+                [connection startRequestWithMethod: currentMethod
+                                               url: NitroConnectionTestsStubURL
+                                       queryString: nil
+                                              body: nil
+                                           headers: nil
+                                           managed: managed
+                                        onDidStart: nil
+                                         onSuccess: ^( TNTHttpConnection *conn, NSHTTPURLResponse *response, NSData *data ) {
+                                             onSuccessBlockRan = YES;
+                                             [self finishedAsyncOperation];
+                                           }
+                                           onError: nil];
+            }];
+            
+            XCTAssertTrue( onSuccessBlockRan );
+            onSuccessBlockRan = NO;
+        }
+        managed = !managed;
     }
+    while( managed );
 }
 
 -( void )test_calls_error_block_on_error
@@ -502,42 +510,49 @@ static NSTimeInterval originalTimeoutInterval;
     connection = [TNTHttpConnection new];
     connection.delegate = self;
     
-    for( NSNumber *boxedHttpMethod in httpMethods )
+    BOOL managed = NO;
+    do
     {
-        TNTHttpMethod currentMethod = [boxedHttpMethod unsignedIntegerValue];
-        [errorRequest setHTTPMethod: [NSString stringFromHttpMethod: currentMethod]];
-        
-        [self waitForAsyncCode: ^{
-            [connection startRequest: errorRequest
-                             managed: NO
-                          onDidStart: nil
-                           onSuccess: nil
-                             onError: ^( TNTHttpConnection *conn, NSError *error ) {
-                                 onErrorBlockRan = YES;
-                                 [self finishedAsyncOperation];
-                             }];
-        }];
-        
-        XCTAssertTrue( onErrorBlockRan );
-        onErrorBlockRan = NO;
-        
-        [self waitForAsyncCode: ^{
-            [connection startRequestWithMethod: currentMethod
-                                           url: NitroConnectionTestsStubErrorURL
-                                        params: nil
-                                       headers: nil
-                                       managed: NO
-                                    onDidStart: nil
-                                     onSuccess: nil
-                                       onError: ^( TNTHttpConnection *conn, NSError *error ) {
-                                           onErrorBlockRan = YES;
-                                           [self finishedAsyncOperation];
-                                       }];
-        }];
-        
-        XCTAssertTrue( onErrorBlockRan );
-        onErrorBlockRan = NO;
+        for( NSNumber *boxedHttpMethod in httpMethods )
+        {
+            TNTHttpMethod currentMethod = [boxedHttpMethod unsignedIntegerValue];
+            [errorRequest setHTTPMethod: [NSString stringFromHttpMethod: currentMethod]];
+            
+            [self waitForAsyncCode: ^{
+                [connection startRequest: errorRequest
+                                 managed: managed
+                              onDidStart: nil
+                               onSuccess: nil
+                                 onError: ^( TNTHttpConnection *conn, NSError *error ) {
+                                     onErrorBlockRan = YES;
+                                     [self finishedAsyncOperation];
+                                 }];
+            }];
+            
+            XCTAssertTrue( onErrorBlockRan );
+            onErrorBlockRan = NO;
+            
+            [self waitForAsyncCode: ^{
+                [connection startRequestWithMethod: currentMethod
+                                               url: NitroConnectionTestsStubErrorURL
+                                       queryString: nil
+                                              body: nil
+                                           headers: nil
+                                           managed: managed
+                                        onDidStart: nil
+                                         onSuccess: nil
+                                           onError: ^( TNTHttpConnection *conn, NSError *error ) {
+                                               onErrorBlockRan = YES;
+                                               [self finishedAsyncOperation];
+                                           }];
+            }];
+            
+            XCTAssertTrue( onErrorBlockRan );
+            onErrorBlockRan = NO;
+        }
+        managed = !managed;
     }
+    while( managed );
 }
 
 #pragma mark - Default configurations tests

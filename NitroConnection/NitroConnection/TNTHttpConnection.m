@@ -40,9 +40,11 @@ static NSTimeInterval TNTHttpConnectionDefaultTimeoutInterval;
 static NSURLRequestCachePolicy TNTHttpConnectionDefaultCachePolicy;
 
 static NSMutableDictionary *managedConnections;
-static NSLock *managedConnectionsLock;
+static NSOperationQueue *managedConnectionsSerializerQueue;
 
 #pragma mark - Helper Types
+
+#pragma mark - TNTNSURLConnectionProxy Interface
 
 typedef void( ^TNTHttpConnectionNotificationBlock )( TNTHttpConnection *httpConnection );
 
@@ -53,6 +55,8 @@ typedef void( ^TNTHttpConnectionNotificationBlock )( TNTHttpConnection *httpConn
 @property( nonatomic, readwrite, weak )id< NSURLConnectionDataDelegate > target;
 
 @end
+
+#pragma mark - TNTNSURLConnectionProxy Implementation
 
 @implementation TNTNSURLConnectionProxy
 
@@ -108,7 +112,7 @@ typedef void( ^TNTHttpConnectionNotificationBlock )( TNTHttpConnection *httpConn
 
 @end
 
-#pragma mark - Class Extension
+#pragma mark - TNTHttpConnection Class Extension
 
 @interface TNTHttpConnection()< NSURLConnectionDataDelegate >
 {
@@ -132,7 +136,7 @@ typedef void( ^TNTHttpConnectionNotificationBlock )( TNTHttpConnection *httpConn
 
 @end
 
-#pragma mark - Implementation
+#pragma mark - TNTHttpConnection Implementation
 
 @implementation TNTHttpConnection
 
@@ -146,7 +150,10 @@ typedef void( ^TNTHttpConnectionNotificationBlock )( TNTHttpConnection *httpConn
         TNTHttpConnectionDefaultCachePolicy = NSURLRequestUseProtocolCachePolicy;
         
         managedConnections = [NSMutableDictionary new];
-        managedConnectionsLock = [NSLock new];
+        
+        managedConnectionsSerializerQueue = [NSOperationQueue new];
+        managedConnectionsSerializerQueue.maxConcurrentOperationCount = 1;
+        managedConnectionsSerializerQueue.name = [NSString stringWithFormat: @"%@ManagedConnectionsSerializerQueue", NSStringFromClass( [self class] )];
     }
 }
 
@@ -184,13 +191,15 @@ typedef void( ^TNTHttpConnectionNotificationBlock )( TNTHttpConnection *httpConn
 
 -( void )startRequestWithMethod:( TNTHttpMethod )httpMethod
                             url:( NSString * )url
-                         params:( NSDictionary * )params
+                    queryString:( NSDictionary * )queryString
+                           body:( NSData * )body
                         headers:( NSDictionary * )headers
                         managed:( BOOL )managed
 {
     [self startRequestWithMethod: httpMethod
                              url: url
-                          params: params
+                     queryString: queryString
+                            body: body
                          headers: headers
                          managed: managed
                       onDidStart: nil
@@ -200,7 +209,8 @@ typedef void( ^TNTHttpConnectionNotificationBlock )( TNTHttpConnection *httpConn
 
 -( void )startRequestWithMethod:( TNTHttpMethod )httpMethod
                             url:( NSString * )url
-                         params:( NSDictionary * )params
+                    queryString:( NSDictionary * )queryString
+                           body:( NSData * )body
                         headers:( NSDictionary * )headers
                         managed:( BOOL )managed
                      onDidStart:( TNTHttpConnectionDidStartBlock )didStartBlock
@@ -210,40 +220,16 @@ typedef void( ^TNTHttpConnectionNotificationBlock )( TNTHttpConnection *httpConn
     if( url.length == 0 )
         return;
     
-    NSMutableURLRequest *request = nil;
-    NSString *formattedParams = [params toQueryString];
-    
-    switch( httpMethod )
+    if( queryString.count > 0 )
     {
-        case TNTHttpMethodGet:
-        case TNTHttpMethodHead:
-        case TNTHttpMethodDelete:
-            if( params.count > 0 )
-                url = [url stringByAppendingFormat: @"?%@", formattedParams];
-            
-            
-            request = [NSMutableURLRequest requestWithURL: [NSURL URLWithString: url]
-                                              cachePolicy: _cachePolicy
-                                          timeoutInterval: _timeoutInterval];
-            
-            break;
-            
-        case TNTHttpMethodPut:
-        case TNTHttpMethodPost:
-        case TNTHttpMethodPatch:
-            request = [NSMutableURLRequest requestWithURL: [NSURL URLWithString: url]
-                                              cachePolicy: _cachePolicy
-                                          timeoutInterval: _timeoutInterval];
-            
-            if( params )
-                [request setHTTPBody: [formattedParams dataUsingEncoding: NSUTF8StringEncoding]];
-            
-            break;
-            
-        default:
-            NTR_LOGE( @"Unknown HTTP method" );
-            return;
+        NSString *formattedQueryString = [queryString toQueryString];
+        url = [url stringByAppendingFormat: @"?%@", formattedQueryString];
     }
+    
+    NSMutableURLRequest *request = [[NSMutableURLRequest alloc] initWithURL: [NSURL URLWithString: url]];
+    
+    if( body.length > 0 )
+        [request setHTTPBody: body];
     
     [request setHTTPMethod: [NSString stringFromHttpMethod: httpMethod]];
     
@@ -557,12 +543,14 @@ typedef void( ^TNTHttpConnectionNotificationBlock )( TNTHttpConnection *httpConn
     if( !connection )
         return;
     
-    [managedConnectionsLock lock];
-
     int address = ( int )connection;
-    managedConnections[@( address )] = connection;
     
-    [managedConnectionsLock unlock];
+    [managedConnectionsSerializerQueue addOperations: @[
+                                                           [NSBlockOperation blockOperationWithBlock: ^{
+                                                               managedConnections[@( address )] = connection;
+                                                           }]
+                                                       ]
+                                   waitUntilFinished: YES];
 }
 
 +( void )stopManagingConnection:( TNTHttpConnection * )connection
@@ -570,12 +558,14 @@ typedef void( ^TNTHttpConnectionNotificationBlock )( TNTHttpConnection *httpConn
     if( !connection )
         return;
     
-    [managedConnectionsLock lock];
-
     int address = ( int )connection;
-    [managedConnections removeObjectForKey: @( address )];
 
-    [managedConnectionsLock unlock];
+    [managedConnectionsSerializerQueue addOperations: @[
+                                                           [NSBlockOperation blockOperationWithBlock: ^{
+                                                               [managedConnections removeObjectForKey: @( address )];
+                                                           }]
+                                                       ]
+                                   waitUntilFinished: YES];
 }
 
 +( void )setDefaultCachePolicy:( NSURLRequestCachePolicy )_cachePolicy
@@ -599,10 +589,6 @@ typedef void( ^TNTHttpConnectionNotificationBlock )( TNTHttpConnection *httpConn
 }
 
 @end
-
-
-
-
 
 
 
