@@ -249,6 +249,12 @@ static NSString * const NitroConnectionTestsStubErrorURL = @"http://error.nitroc
     temp = [TNTHttpConnection head: NitroConnectionTestsStubURL queryString: nil body: nil onDidStart: nil onSuccess: nil onError: nil];
     XCTAssertRequestHttpMethod( temp.lastRequest, TNTHttpMethodHead );
     
+    temp = [TNTHttpConnection head: NitroConnectionTestsStubURL queryString: nil body: nil headers: nil delegate: self];
+    XCTAssertRequestHttpMethod( temp.lastRequest, TNTHttpMethodHead );
+    
+    temp = [TNTHttpConnection head: NitroConnectionTestsStubURL queryString: nil body: nil headers: nil onDidStart: nil onSuccess: nil onError: nil];
+    XCTAssertRequestHttpMethod( temp.lastRequest, TNTHttpMethodHead );
+    
     // Unmanaged
     temp = [TNTHttpConnection unmanagedHead: NitroConnectionTestsStubURL delegate: nil];
     XCTAssertRequestHttpMethod( temp.lastRequest, TNTHttpMethodHead );
@@ -266,6 +272,12 @@ static NSString * const NitroConnectionTestsStubErrorURL = @"http://error.nitroc
     XCTAssertRequestHttpMethod( temp.lastRequest, TNTHttpMethodHead );
     
     temp = [TNTHttpConnection unmanagedHead: NitroConnectionTestsStubURL queryString: nil body: nil onDidStart: nil onSuccess: nil onError: nil];
+    XCTAssertRequestHttpMethod( temp.lastRequest, TNTHttpMethodHead );
+    
+    temp = [TNTHttpConnection unmanagedHead: NitroConnectionTestsStubURL queryString: nil body: nil headers: nil delegate: self];
+    XCTAssertRequestHttpMethod( temp.lastRequest, TNTHttpMethodHead );
+    
+    temp = [TNTHttpConnection unmanagedHead: NitroConnectionTestsStubURL queryString: nil body: nil headers: nil onDidStart: nil onSuccess: nil onError: nil];
     XCTAssertRequestHttpMethod( temp.lastRequest, TNTHttpMethodHead );
 }
 
