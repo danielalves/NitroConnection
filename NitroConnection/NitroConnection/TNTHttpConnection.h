@@ -395,6 +395,35 @@ typedef void ( ^TNTHttpConnectionErrorBlock )( TNTHttpConnection *connection, NS
  */
 +( NSTimeInterval )defaultTimeoutInterval;
 
+/**
+ *  @name HTTP Basic Access Authentication
+ */
+
+/**
+ *  <#Description#>
+ *
+ *  @param regex                         <#regex description#>
+ *  @param httpMethod                    <#httpMethod description#>
+ *  @param url                           <#url description#>
+ *  @param queryString                   <#queryString description#>
+ *  @param body                          <#body description#>
+ *  @param headers                       <#headers description#>
+ *  @param onInformCredentialsBlock      <#onInformCredentialsBlock description#>
+ *  @param onParseTokenFromResponseBlock <#onParseTokenFromResponseBlock description#>
+ *  @param onAuthenticationErrorBlock    <#onAuthenticationErrorBlock description#>
+ *
+ *  @see http://en.wikipedia.org/wiki/Basic_access_authentication
+ */
++( void )authenticateServicesMatching:( NSRegularExpression * )regex
+               usingRequestWithMethod:( TNTHttpMethod )httpMethod
+                                  url:( NSString * )url
+                          queryString:( NSDictionary * )queryString
+                                 body:( NSData * )body
+                              headers:( NSDictionary * )headers
+                  onInformCredentials:( NSString * (^)( NSURLRequest *originalRequest ))onInformCredentialsBlock
+             onParseTokenFromResponse:( NSString * (^)( NSURLRequest *originalRequest, NSHTTPURLResponse *authenticationResponse ))onParseTokenFromResponseBlock
+                onAuthenticationError:( BOOL(^)( NSURLRequest *originalRequest, NSHTTPURLResponse *authenticationResponse, NSError *error ))onAuthenticationErrorBlock;
+
 @end
 
 /***********************************************************************
