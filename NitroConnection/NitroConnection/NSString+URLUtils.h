@@ -8,7 +8,7 @@
 
 #import <Foundation/Foundation.h>
 
-@interface NSString( NitroConnection_URLUtils )
+@interface NSString( URLUtils_NitroConnection )
 
 /**
  *  Returns an escaped url string. The list of characters that will be escaped follows:

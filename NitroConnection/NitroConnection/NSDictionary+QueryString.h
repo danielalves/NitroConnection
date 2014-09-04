@@ -8,7 +8,7 @@
 
 #import <Foundation/Foundation.h>
 
-@interface NSDictionary( NitroConnection_QueryString )
+@interface NSDictionary( QueryString_NitroConnection )
 
 /**
  *  Returns a query string representing the key-values of the dictionary, with
