@@ -191,13 +191,37 @@ typedef void( ^TNTHttpConnectionNotificationBlock )( TNTHttpConnection *httpConn
     }
 }
 
+
+-( BOOL )connection:( NSURLConnection * )connection canAuthenticateAgainstProtectionSpace:( NSURLProtectionSpace * )protectionSpace
+{
+    if( !_target )
+        return NO;
+    
+    @synchronized( _target )
+    {
+        // We do not use respondsToSelector: since we know TNTHttpConnection does repond
+        return [_target connection: connection canAuthenticateAgainstProtectionSpace: protectionSpace];
+    }
+}
+
+-( void )connection:( NSURLConnection * )connection didReceiveAuthenticationChallenge:( NSURLAuthenticationChallenge * )challenge
+{
+    if( !_target )
+        return;
+    
+    @synchronized( _target )
+    {
+        // We do not use respondsToSelector: since we know TNTHttpConnection does repond
+        [_target connection: connection didReceiveAuthenticationChallenge: challenge];
+    }
+}
+
 @end
 
 #pragma mark - TNTHttpConnection Class Extension
 
 @interface TNTHttpConnection()< NSURLConnectionDataDelegate >
 {
-    BOOL managedConnection;
     NSOperationQueue *notificationQueue;
     TNTNSURLConnectionProxy *urlConnectionProxy;
     
@@ -206,6 +230,7 @@ typedef void( ^TNTHttpConnectionNotificationBlock )( TNTHttpConnection *httpConn
     
     NSOperationQueue *callerQueue;
 }
+@property( nonatomic, readonly, assign )BOOL managedConnection;
 @property( nonatomic, readwrite, assign )BOOL requestAlive;
 
 @property( nonatomic, readwrite, strong )NSURLRequest *lastRequest;
@@ -370,7 +395,7 @@ typedef void( ^TNTHttpConnectionNotificationBlock )( TNTHttpConnection *httpConn
 
 -( void )retryRequest
 {
-    [self makeRequest: _lastRequest  managed: managedConnection];
+    [self makeRequest: _lastRequest  managed: _managedConnection];
 }
 
 -( void )cancelRequest
@@ -379,11 +404,24 @@ typedef void( ^TNTHttpConnectionNotificationBlock )( TNTHttpConnection *httpConn
     // starts or cancels requests. That's why we need synchronization.
     @synchronized( self )
     {
-        [notificationQueue cancelAllOperations];
+        [self reset];
+        
+        if( _managedConnection )
+            [TNTHttpConnection stopManagingConnection: self];
+    }
+}
 
+-( void )reset
+{
+    // Does not need to be synchronized since it is only called inside already
+    // synchronized blocks
+//    @synchronized( self )
+//    {
+        [notificationQueue cancelAllOperations];
+        
         [connection cancel];
         connection = nil;
-
+        
         urlConnectionProxy.target = nil;
         urlConnectionProxy = nil;
         
@@ -391,19 +429,16 @@ typedef void( ^TNTHttpConnectionNotificationBlock )( TNTHttpConnection *httpConn
         
         // Caller queue is used to dispatch notifications. So we are only going to reset it
         // if the user starts another request
-//        callerQueue = nil;
+        //        callerQueue = nil;
         
         // We do not reset lastResponse and responseDataBuffer here because the user
         // may want them after a request has been canceled
-//        self.lastResponse = nil;
-//        responseDataBuffer = nil;
+        //        self.lastResponse = nil;
+        //        responseDataBuffer = nil;
         
         // We do not reset lastRequest because the user may want to retry
-//        self.lastRequest = nil;
-        
-        if( managedConnection )
-            [TNTHttpConnection stopManagingConnection: self];
-    }
+        //        self.lastRequest = nil;
+//    }
 }
 
 #pragma mark - Internals
@@ -420,7 +455,7 @@ typedef void( ^TNTHttpConnectionNotificationBlock )( TNTHttpConnection *httpConn
         // On the 2nd request we would not unregister from management.
         [self cancelRequest];
         
-        managedConnection = managed;
+        _managedConnection = managed;
         
         if( request )
         {
@@ -441,7 +476,7 @@ typedef void( ^TNTHttpConnectionNotificationBlock )( TNTHttpConnection *httpConn
 
             responseDataBuffer = [NSMutableData dataWithCapacity: K_BYTE];
 
-            if( managedConnection )
+            if( _managedConnection )
                 [TNTHttpConnection startManagingConnection: self];
 
             // We have to call 'start' before sending the did start notification. This way, if
@@ -484,14 +519,8 @@ typedef void( ^TNTHttpConnectionNotificationBlock )( TNTHttpConnection *httpConn
             // is released elsewhere before the notification block gets executed
              NSHTTPURLResponse *responseCopy = _lastResponse;
             
-            // If the current request of this connection is managed, cancelRequest will possibly release
-            // the last strong reference we have to self. Thus any code after cancelRequest would have undefined
-            // behavior. Having a strong reference that lives only inside this scope fixes the problem.
-            TNTHttpConnection *strongSelf = self;
-            
-            [strongSelf cancelRequest];
-            
-            [strongSelf onNotifyConnectionSuccessWithResponse: responseCopy data: responseDataCopy];
+            [self reset];
+            [self onNotifyConnectionSuccessWithResponse: responseCopy data: responseDataCopy];
         }
     }
 }
@@ -522,13 +551,55 @@ typedef void( ^TNTHttpConnectionNotificationBlock )( TNTHttpConnection *httpConn
     // starts or cancels requests. That's why we need synchronization.
     @synchronized( self )
     {
-        // If the current request of this connection is managed, cancelRequest will possibly release
-        // the last strong reference we have to self. Thus any code after cancelRequest would have undefined
-        // behavior. Having a strong reference that lives only inside this scope fixes the problem.
-        TNTHttpConnection *strongSelf = self;
+        [self reset];
+        [self onNotifyConnectionError: error];
+    }
+}
+
+-( BOOL )connection:( NSURLConnection * )urlConnection canAuthenticateAgainstProtectionSpace:( NSURLProtectionSpace * )protectionSpace
+{
+    // Does not need to be synchronized since we do not change internal state or call the delegate / callbaks
+    return [urlConnection.currentRequest.URL.scheme.lowercaseString isEqualToString: @"https"];
+}
+
+-( void )connection:( NSURLConnection * )urlConnection didReceiveAuthenticationChallenge:( NSURLAuthenticationChallenge * )challenge
+{
+    // Does not need to be synchronized since we do not change internal state or call the delegate / callbaks
+    
+    const NSRange notFoundRange = NSMakeRange( NSNotFound, 0 );
+    NSString *urlString = urlConnection.currentRequest.URL.absoluteString;
+    
+    __block BOOL trusted = NO;
+    [authenticationItemsSerializerQueue addOperations: @[
+                                                             [NSBlockOperation blockOperationWithBlock: ^{
         
-        [strongSelf cancelRequest];
-        [strongSelf onNotifyConnectionError: error];
+                                                                for( TNTAuthenticationItem *authItem in authenticationItems )
+                                                                {
+                                                                    NSURL *tokenUrl = [NSURL URLWithString: authItem.url];
+                                                                    if( [tokenUrl.host isEqualToString: challenge.protectionSpace.host] )
+                                                                    {
+                                                                        trusted = YES;
+                                                                        break;
+                                                                    }
+                                                                    
+                                                                    NSRange rangeOfFirstMatch = [authItem.servicesRegex rangeOfFirstMatchInString: urlString
+                                                                                                                                          options: 0
+                                                                                                                                            range: NSMakeRange( 0, [urlString length] )];
+                                                                    if( !NSEqualRanges( rangeOfFirstMatch, notFoundRange ))
+                                                                    {
+                                                                        trusted = YES;
+                                                                        break;
+                                                                    }
+                                                                }
+                                                            }]
+                                                         ]
+                                    waitUntilFinished: YES];
+    
+    
+    if( trusted )
+    {
+        [challenge.sender useCredential: [NSURLCredential credentialForTrust: challenge.protectionSpace.serverTrust]
+             forAuthenticationChallenge: challenge];
     }
 }
 
@@ -550,6 +621,9 @@ typedef void( ^TNTHttpConnectionNotificationBlock )( TNTHttpConnection *httpConn
 {
     [self onNotify: ^( TNTHttpConnection *httpConnection ){
         
+        if( httpConnection.managedConnection )
+            [TNTHttpConnection stopManagingConnection: self];
+        
         if( [httpConnection.delegate respondsToSelector: @selector( onTNTHttpConnection:didReceiveResponse:withData: )] )
             [httpConnection.delegate onTNTHttpConnection: httpConnection didReceiveResponse: response withData: responseData];
         
@@ -561,6 +635,9 @@ typedef void( ^TNTHttpConnectionNotificationBlock )( TNTHttpConnection *httpConn
 -( void )onNotifyConnectionError:( NSError* )error
 {
     [self onNotify: ^( TNTHttpConnection *httpConnection ){
+        
+        if( httpConnection.managedConnection )
+            [TNTHttpConnection stopManagingConnection: self];
 
         if( [httpConnection.delegate respondsToSelector: @selector( onTNTHttpConnection:didFailWithError: )] )
             [httpConnection.delegate onTNTHttpConnection: httpConnection didFailWithError: error];
@@ -826,6 +903,14 @@ typedef void( ^TNTHttpConnectionNotificationBlock )( TNTHttpConnection *httpConn
                                             NSMutableDictionary *customHeadersPlusAuth = [NSMutableDictionary dictionaryWithDictionary: @{ @"Authorization": [NSString stringWithFormat: @"Basic %@", credentials] }];
                                             if( authItem.headers )
                                                 [customHeadersPlusAuth addEntriesFromDictionary: authItem.headers];
+        
+                                            NSBlockOperation *notifyErrorOperation = [NSBlockOperation blockOperationWithBlock: ^{
+                                                
+                                                authItem.authenticating = NO;
+                                                
+                                                for( TNTConnectionAndError *connToRetry in authItem.connectionsToRetry )
+                                                    [connToRetry.connection failWithError: connToRetry.error];
+                                            }];
     
                                             [authConnection startRequestWithMethod: authItem.httpMethod
                                                                                url: authItem.url
@@ -838,18 +923,24 @@ typedef void( ^TNTHttpConnectionNotificationBlock )( TNTHttpConnection *httpConn
                                                                              
                                                                              NSString *token = authItem.onParseTokenFromResponseBlock( originalRequest, response, data );
                                                                              if( token.length > 0 )
+                                                                             {
                                                                                 [authItem saveToken: token];
                                                                              
-                                                                             [serializerQueue addOperations: @[
-                                                                                                                [NSBlockOperation blockOperationWithBlock: ^{
-                                                                                 
-                                                                                                                    authItem.authenticating = NO;
-                                                                                 
-                                                                                                                    for( TNTConnectionAndError *connToRetry in authItem.connectionsToRetry )
-                                                                                                                        [connToRetry.connection retryRequest];
-                                                                                                                }]
-                                                                                                              ]
-                                                                                          waitUntilFinished: NO];
+                                                                                 [serializerQueue addOperations: @[
+                                                                                                                    [NSBlockOperation blockOperationWithBlock: ^{
+                                                                                     
+                                                                                                                        authItem.authenticating = NO;
+                                                                                     
+                                                                                                                        for( TNTConnectionAndError *connToRetry in authItem.connectionsToRetry )
+                                                                                                                            [connToRetry.connection retryRequest];
+                                                                                                                    }]
+                                                                                                                  ]
+                                                                                              waitUntilFinished: NO];
+                                                                             }
+                                                                             else
+                                                                             {
+                                                                                 [serializerQueue addOperations: @[ notifyErrorOperation ] waitUntilFinished: NO];
+                                                                             }
                                                                            }
                                                                            onError: ^( TNTHttpConnection *authConn, NSError *error ) {
                                                                                 BOOL retry = authItem.onAuthenticationErrorBlock( originalRequest, authConn.lastResponse, error );
@@ -859,16 +950,7 @@ typedef void( ^TNTHttpConnectionNotificationBlock )( TNTHttpConnection *httpConn
                                                                                     return;
                                                                                 }
 
-                                                                                [serializerQueue addOperations: @[
-                                                                                                                     [NSBlockOperation blockOperationWithBlock: ^{
-                                                                                    
-                                                                                                                        authItem.authenticating = NO;
-
-                                                                                                                        for( TNTConnectionAndError *connToRetry in authItem.connectionsToRetry )
-                                                                                                                            [connToRetry.connection failWithError: connToRetry.error];
-                                                                                                                     }]
-                                                                                                                  ]
-                                                                                             waitUntilFinished: NO];
+                                                                                [serializerQueue addOperations: @[ notifyErrorOperation ] waitUntilFinished: NO];
                                                                            }];
                                             authItem.authenticating = YES;
                                         }]
