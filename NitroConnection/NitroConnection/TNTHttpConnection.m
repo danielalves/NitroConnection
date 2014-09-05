@@ -107,7 +107,7 @@ static NSMutableDictionary *authenticationItemSerializerQueuesDict;
 {
     self = [super init];
     if( self )
-        _connectionsToRetry = [NSHashTable weakObjectsHashTable];
+        _connectionsToRetry = [NSMutableArray new];
     
     return self;
 }
