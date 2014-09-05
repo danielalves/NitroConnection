@@ -421,7 +421,7 @@ typedef void ( ^TNTHttpConnectionErrorBlock )( TNTHttpConnection *connection, NS
                                  body:( NSData * )body
                               headers:( NSDictionary * )headers
                   onInformCredentials:( NSString * (^)( NSURLRequest *originalRequest ))onInformCredentialsBlock
-             onParseTokenFromResponse:( NSString * (^)( NSURLRequest *originalRequest, NSHTTPURLResponse *authenticationResponse ))onParseTokenFromResponseBlock
+             onParseTokenFromResponse:( NSString * (^)( NSURLRequest *originalRequest, NSHTTPURLResponse *authenticationResponse, NSData *responseData ))onParseTokenFromResponseBlock
                 onAuthenticationError:( BOOL(^)( NSURLRequest *originalRequest, NSHTTPURLResponse *authenticationResponse, NSError *error ))onAuthenticationErrorBlock;
 
 @end

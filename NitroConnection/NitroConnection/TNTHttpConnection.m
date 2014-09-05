@@ -89,7 +89,7 @@ static NSMutableDictionary *authenticationItemSerializerQueuesDict;
 @property( nonatomic, readwrite, strong )NSDictionary *headers;
 
 @property( nonatomic, readwrite, copy )NSString * ( ^onInformCredentialsBlock )( NSURLRequest *originalRequest );
-@property( nonatomic, readwrite, copy )NSString * ( ^onParseTokenFromResponseBlock )( NSURLRequest *originalRequest, NSHTTPURLResponse *authenticationResponse );
+@property( nonatomic, readwrite, copy )NSString * ( ^onParseTokenFromResponseBlock )( NSURLRequest *originalRequest, NSHTTPURLResponse *authenticationResponse, NSData *data );
 @property( nonatomic, readwrite, copy )BOOL( ^onAuthenticationErrorBlock )( NSURLRequest *originalRequest, NSHTTPURLResponse *authenticationResponse, NSError *error );
 
 @property( nonatomic, readwrite, strong )NSMutableArray *connectionsToRetry;
@@ -709,7 +709,7 @@ typedef void( ^TNTHttpConnectionNotificationBlock )( TNTHttpConnection *httpConn
                                  body:( NSData * )body
                               headers:( NSDictionary * )headers
                   onInformCredentials:( NSString * (^)( NSURLRequest *originalRequest ))onInformCredentialsBlock
-             onParseTokenFromResponse:( NSString * (^)( NSURLRequest *originalRequest, NSHTTPURLResponse *authenticationResponse ))onParseTokenFromResponseBlock
+             onParseTokenFromResponse:( NSString * (^)( NSURLRequest *originalRequest, NSHTTPURLResponse *authenticationResponse, NSData *data ))onParseTokenFromResponseBlock
                 onAuthenticationError:( BOOL(^)( NSURLRequest *originalRequest, NSHTTPURLResponse *authenticationResponse, NSError *error ))onAuthenticationErrorBlock
 {
     TNTAuthenticationItem *authItem = [TNTAuthenticationItem new];
@@ -836,7 +836,7 @@ typedef void( ^TNTHttpConnectionNotificationBlock )( TNTHttpConnection *httpConn
                                                                         onDidStart: nil
                                                                          onSuccess: ^( TNTHttpConnection *authConn, NSHTTPURLResponse *response, NSData *data ) {
                                                                              
-                                                                             NSString *token = authItem.onParseTokenFromResponseBlock( originalRequest, response );
+                                                                             NSString *token = authItem.onParseTokenFromResponseBlock( originalRequest, response, data );
                                                                              if( token.length > 0 )
                                                                                 [authItem saveToken: token];
                                                                              
