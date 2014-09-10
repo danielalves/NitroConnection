@@ -14,6 +14,7 @@
 #import "TNTHttpStatusCodes.h"
 
 // Pods
+#import <NitroKeychain/TNTKeychain.h>
 #import <NitroMisc/NTRLogging.h>
 
 #pragma mark - Defines
@@ -23,6 +24,9 @@
 #else
 	#define DEFAULT_CONNECTION_TIMEOUT_INTERVAL_SECS 3
 #endif
+
+// Just to get compilation errors and to be refactoring compliant. But this way we can't concat strings at compilation time =/
+#define EVAL_AND_STRINGIFY(x) (x ? __STRING(x) : __STRING(x))
 
 #define K_BYTE 1024
 
@@ -83,10 +87,12 @@ static NSMutableDictionary *authenticationItemSerializerQueuesDict;
 @property( nonatomic, readwrite, strong )NSRegularExpression *servicesRegex;
 
 @property( nonatomic, readwrite, assign )TNTHttpMethod httpMethod;
-@property( nonatomic, readwrite, strong )NSString *url;
+@property( nonatomic, readwrite, strong )NSString *tokenUrl;
 @property( nonatomic, readwrite, strong )NSDictionary *queryString;
 @property( nonatomic, readwrite, strong )NSData *body;
 @property( nonatomic, readwrite, strong )NSDictionary *headers;
+@property( nonatomic, readwrite, strong )NSString *keychainItemId;
+@property( nonatomic, readwrite, strong )NSString *keychainItemAccessGroup;
 
 @property( nonatomic, readwrite, copy )NSString * ( ^onInformCredentialsBlock )( NSURLRequest *originalRequest );
 @property( nonatomic, readwrite, copy )NSString * ( ^onParseTokenFromResponseBlock )( NSURLRequest *originalRequest, NSHTTPURLResponse *authenticationResponse, NSData *data );
@@ -114,13 +120,26 @@ static NSMutableDictionary *authenticationItemSerializerQueuesDict;
 
 -( NSString * )loadToken
 {
-    // TODO
-    return nil;
+    if( [TNTAuthenticationItem validKeychainString: _keychainItemId] )
+        return [TNTKeychain load: _keychainItemId];
+    
+    return [TNTKeychain load: _tokenUrl];
 }
 
 -( void )saveToken:( NSString * )token
 {
-    // TODO
+    NSString *finalAccessGroup = [TNTAuthenticationItem validKeychainString: _keychainItemAccessGroup] ? _keychainItemAccessGroup : nil;
+    
+    if( [TNTAuthenticationItem validKeychainString: _keychainItemId] )
+        [TNTKeychain save: _keychainItemId data: token accessGroup: finalAccessGroup];
+    else
+        [TNTKeychain save: _tokenUrl data: token accessGroup: finalAccessGroup];
+}
+
++( BOOL )validKeychainString:( NSString * )str
+{
+    NSString *formattedKeychainStr = [str stringByTrimmingCharactersInSet: [NSCharacterSet whitespaceAndNewlineCharacterSet]];
+    return formattedKeychainStr.length > 0;
 }
 
 @end
@@ -373,19 +392,6 @@ typedef void( ^TNTHttpConnectionNotificationBlock )( TNTHttpConnection *httpConn
     if( !request )
         return;
     
-    // We must add auth headers here, and not in -makeRequest:managed: because -retry also calls the latter.
-    // If we added auth headers there, we would be updating them on every retry
-    NSDictionary *authHeaders = [TNTHttpConnection authenticationHeadersForUrl: request.URL];
-    if( authHeaders.count > 0 )
-    {
-        NSMutableURLRequest *mutableRequest = [NSMutableURLRequest requestWithRequest: request];
-        
-        for( NSString *authHeaderKey in [authHeaders allKeys] )
-            [mutableRequest addValue: [authHeaders valueForKey: authHeaderKey] forHTTPHeaderField: authHeaderKey];
-        
-        request = mutableRequest;
-    }
-    
     self.didStartBlock = didStartBlock;
     self.successBlock = successBlock;
     self.errorBlock = errorBlock;
@@ -429,15 +435,15 @@ typedef void( ^TNTHttpConnectionNotificationBlock )( TNTHttpConnection *httpConn
         
         // Caller queue is used to dispatch notifications. So we are only going to reset it
         // if the user starts another request
-        //        callerQueue = nil;
-        
+//        callerQueue = nil;
+    
         // We do not reset lastResponse and responseDataBuffer here because the user
         // may want them after a request has been canceled
-        //        self.lastResponse = nil;
-        //        responseDataBuffer = nil;
-        
+//        self.lastResponse = nil;
+//        responseDataBuffer = nil;
+    
         // We do not reset lastRequest because the user may want to retry
-        //        self.lastRequest = nil;
+//        self.lastRequest = nil;
 //    }
 }
 
@@ -459,6 +465,19 @@ typedef void( ^TNTHttpConnectionNotificationBlock )( TNTHttpConnection *httpConn
         
         if( request )
         {
+            NSDictionary *authHeaders = [TNTHttpConnection authenticationHeadersForUrl: request.URL];
+            if( authHeaders.count > 0 )
+            {
+                NSMutableURLRequest *mutableRequest = [NSMutableURLRequest requestWithRequest: request];
+                
+                // We must set, and not add, auth headers because -retry also calls this method.
+                // If we added auth headers, we would be incrementally updating them on every retry
+                for( NSString *authHeaderKey in [authHeaders allKeys] )
+                    [mutableRequest setValue: [authHeaders valueForKey: authHeaderKey] forHTTPHeaderField: authHeaderKey];
+                
+                request = mutableRequest;
+            }
+            
             self.lastRequest = request;
             self.lastResponse = nil;
 
@@ -575,7 +594,7 @@ typedef void( ^TNTHttpConnectionNotificationBlock )( TNTHttpConnection *httpConn
         
                                                                 for( TNTAuthenticationItem *authItem in authenticationItems )
                                                                 {
-                                                                    NSURL *tokenUrl = [NSURL URLWithString: authItem.url];
+                                                                    NSURL *tokenUrl = [NSURL URLWithString: authItem.tokenUrl];
                                                                     if( [tokenUrl.host isEqualToString: challenge.protectionSpace.host] )
                                                                     {
                                                                         trusted = YES;
@@ -777,25 +796,74 @@ typedef void( ^TNTHttpConnectionNotificationBlock )( TNTHttpConnection *httpConn
     return TNTHttpConnectionDefaultTimeoutInterval;
 }
 
-#pragma mark - HTTP Basic Access Authentication
+#pragma mark - OAuth 2
+
++( void )authenticateServicesMatchingRegexString:( NSString * )regexStr
+                          usingRequestWithMethod:( TNTHttpMethod )httpMethod
+                                        tokenUrl:( NSString * )tokenUrl
+                                     queryString:( NSDictionary * )queryString
+                                            body:( NSData * )body
+                                         headers:( NSDictionary * )headers
+                                  keychainItemId:( NSString * )keychainItemId
+                         keychainItemAccessGroup:( NSString * )keychainItemAccessGroup
+                             onInformCredentials:( NSString * (^)( NSURLRequest *originalRequest ))onInformCredentialsBlock
+                        onParseTokenFromResponse:( NSString * (^)( NSURLRequest *originalRequest, NSHTTPURLResponse *authenticationResponse, NSData *responseData ))onParseTokenFromResponseBlock
+                           onAuthenticationError:( BOOL(^)( NSURLRequest *originalRequest, NSHTTPURLResponse *authenticationResponse, NSError *error ))onAuthenticationErrorBlock
+{
+    NSError *error;
+    NSRegularExpression *regex = [NSRegularExpression regularExpressionWithPattern: regexStr
+                                                                           options: NSRegularExpressionCaseInsensitive
+                                                                             error: &error];
+    if( error )
+        [NSException raise: NSInvalidArgumentException format: @"Invalid %s %@: %@", EVAL_AND_STRINGIFY( regexStr ), regexStr, error];
+    
+    return [self authenticateServicesMatching: regex
+                       usingRequestWithMethod: httpMethod
+                                     tokenUrl: tokenUrl
+                                  queryString: queryString
+                                         body: body
+                                      headers: headers
+                               keychainItemId: keychainItemId
+                      keychainItemAccessGroup: keychainItemAccessGroup
+                          onInformCredentials: onInformCredentialsBlock
+                     onParseTokenFromResponse: onParseTokenFromResponseBlock
+                        onAuthenticationError: onAuthenticationErrorBlock];
+}
 
 +( void )authenticateServicesMatching:( NSRegularExpression * )regex
                usingRequestWithMethod:( TNTHttpMethod )httpMethod
-                                  url:( NSString * )url
+                             tokenUrl:( NSString * )tokenUrl
                           queryString:( NSDictionary * )queryString
                                  body:( NSData * )body
                               headers:( NSDictionary * )headers
+                       keychainItemId:( NSString * )keychainItemId
+              keychainItemAccessGroup:( NSString * )keychainItemAccessGroup
                   onInformCredentials:( NSString * (^)( NSURLRequest *originalRequest ))onInformCredentialsBlock
              onParseTokenFromResponse:( NSString * (^)( NSURLRequest *originalRequest, NSHTTPURLResponse *authenticationResponse, NSData *data ))onParseTokenFromResponseBlock
                 onAuthenticationError:( BOOL(^)( NSURLRequest *originalRequest, NSHTTPURLResponse *authenticationResponse, NSError *error ))onAuthenticationErrorBlock
 {
+    if( !regex )
+        [NSException raise: NSInvalidArgumentException format: @"%s must not be nil", EVAL_AND_STRINGIFY( regex )];
+    
+    NSURL *url = [NSURL URLWithString: tokenUrl];
+    if( !url )
+        [NSException raise: NSInvalidArgumentException format: @"Invalid %s %@", EVAL_AND_STRINGIFY( tokenUrl ), tokenUrl];
+    
+    if( !onInformCredentialsBlock )
+        [NSException raise: NSInvalidArgumentException format: @"%s must not be nil", EVAL_AND_STRINGIFY( onInformCredentialsBlock )];
+    
+    if( !onParseTokenFromResponseBlock )
+        [NSException raise: NSInvalidArgumentException format: @"%s must not be nil", EVAL_AND_STRINGIFY( onParseTokenFromResponseBlock )];
+        
     TNTAuthenticationItem *authItem = [TNTAuthenticationItem new];
     authItem.servicesRegex = regex;
     authItem.httpMethod = httpMethod;
-    authItem.url = url;
+    authItem.tokenUrl = tokenUrl;
     authItem.queryString = queryString;
     authItem.body = body;
     authItem.headers = headers;
+    authItem.keychainItemId = keychainItemId;
+    authItem.keychainItemAccessGroup = keychainItemAccessGroup;
     authItem.onInformCredentialsBlock = onInformCredentialsBlock;
     authItem.onParseTokenFromResponseBlock = onParseTokenFromResponseBlock;
     authItem.onAuthenticationErrorBlock = onAuthenticationErrorBlock;
@@ -853,11 +921,7 @@ typedef void( ^TNTHttpConnectionNotificationBlock )( TNTHttpConnection *httpConn
     NSString *token = [authItem loadToken];
     if( !token )
         return nil;
-    
-    //
-    // See:
-    // http://en.wikipedia.org/wiki/Basic_access_authentication#Client_side
-    //
+
     return @{ @"Authorization": [NSString stringWithFormat: @"Bearer %@", token] };
 }
 
@@ -913,7 +977,7 @@ typedef void( ^TNTHttpConnectionNotificationBlock )( TNTHttpConnection *httpConn
                                             }];
     
                                             [authConnection startRequestWithMethod: authItem.httpMethod
-                                                                               url: authItem.url
+                                                                               url: authItem.tokenUrl
                                                                        queryString: authItem.queryString
                                                                               body: authItem.body
                                                                            headers: customHeadersPlusAuth
@@ -924,7 +988,7 @@ typedef void( ^TNTHttpConnectionNotificationBlock )( TNTHttpConnection *httpConn
                                                                              NSString *token = authItem.onParseTokenFromResponseBlock( originalRequest, response, data );
                                                                              if( token.length > 0 )
                                                                              {
-                                                                                [authItem saveToken: token];
+                                                                                 [authItem saveToken: token];
                                                                              
                                                                                  [serializerQueue addOperations: @[
                                                                                                                     [NSBlockOperation blockOperationWithBlock: ^{
@@ -943,11 +1007,15 @@ typedef void( ^TNTHttpConnectionNotificationBlock )( TNTHttpConnection *httpConn
                                                                              }
                                                                            }
                                                                            onError: ^( TNTHttpConnection *authConn, NSError *error ) {
-                                                                                BOOL retry = authItem.onAuthenticationErrorBlock( originalRequest, authConn.lastResponse, error );
-                                                                                if( retry )
+                                                                               
+                                                                                if( authItem.onAuthenticationErrorBlock != nil )
                                                                                 {
-                                                                                    [authConn retryRequest];
-                                                                                    return;
+                                                                                    BOOL retry = authItem.onAuthenticationErrorBlock( originalRequest, authConn.lastResponse, error );
+                                                                                    if( retry )
+                                                                                    {
+                                                                                        [authConn retryRequest];
+                                                                                        return;
+                                                                                    }
                                                                                 }
 
                                                                                 [serializerQueue addOperations: @[ notifyErrorOperation ] waitUntilFinished: NO];

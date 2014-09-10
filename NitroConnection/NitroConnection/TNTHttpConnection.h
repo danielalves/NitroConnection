@@ -132,6 +132,11 @@ typedef void ( ^TNTHttpConnectionErrorBlock )( TNTHttpConnection *connection, NS
  *  As opposed to managed requests, unmanaged requests do not hold their connections alive, so those connections are released as soon as the scope in which they were 
  *  created is left. That is, there is no need for the user to call cancelRequest on a connection running an unmanaged request prior to its deallocation. Therefore the
  *  user must keep a strong reference to the connection to keep it alive.
+ *
+ *  For more information about OAuth 2 and HTTP Basic Authentication, see:
+ *    - http://tools.ietf.org/html/rfc6749
+ *    - http://en.wikipedia.org/wiki/OAuth
+ *    - http://en.wikipedia.org/wiki/Basic_access_authentication
  */
 @interface TNTHttpConnection : NSObject
 
@@ -396,30 +401,92 @@ typedef void ( ^TNTHttpConnectionErrorBlock )( TNTHttpConnection *connection, NS
 +( NSTimeInterval )defaultTimeoutInterval;
 
 /**
- *  @name HTTP Basic Access Authentication
+ *  @name OAuth 2
  */
+
+/**
+ *  This is the same as calling:
+ *
+ *  +authenticateServicesMatching:
+ *         usingRequestWithMethod:
+ *                       tokenUrl:
+ *                    queryString:
+ *                           body:
+ *                        headers:
+ *                 keychainItemId:
+ *        keychainItemAccessGroup:
+ *            onInformCredentials:
+ *       onParseTokenFromResponse:
+ *          onAuthenticationError:
+ *
+ *  With a regex created like this:
+ *
+ *  @code
+ *  NSError *error;
+ *  NSRegularExpression *regex = [NSRegularExpression regularExpressionWithPattern: regexString
+ *                                                                         options: NSRegularExpressionCaseInsensitive
+ *                                                                           error: &error];
+ *  @endcode
+ *
+ *  @param regexStr                      <#regexStr description#>
+ *  @param httpMethod                    <#httpMethod description#>
+ *  @param tokenUrl                      <#tokenUrl description#>
+ *  @param queryString                   <#queryString description#>
+ *  @param body                          <#body description#>
+ *  @param headers                       <#headers description#>
+ *  @param keychainItemId                <#keychainItemId description#>
+ *  @param keychainItemAccessGroup       <#keychainItemAccessGroup description#>
+ *  @param onInformCredentialsBlock      <#onInformCredentialsBlock description#>
+ *  @param onParseTokenFromResponseBlock <#onParseTokenFromResponseBlock description#>
+ *  @param onAuthenticationErrorBlock    <#onAuthenticationErrorBlock description#>
+ *
+ *  @see +authenticateServicesMatching:usingRequestWithMethod:tokenUrl:queryString:body:headers:keychainItemId:keychainItemAccessGroup:onInformCredentials:onParseTokenFromResponse:onAuthenticationError:
+ */
+
++( void )authenticateServicesMatchingRegexString:( NSString * )regexStr
+                          usingRequestWithMethod:( TNTHttpMethod )httpMethod
+                                        tokenUrl:( NSString * )tokenUrl
+                                     queryString:( NSDictionary * )queryString
+                                            body:( NSData * )body
+                                         headers:( NSDictionary * )headers
+                                  keychainItemId:( NSString * )keychainItemId
+                         keychainItemAccessGroup:( NSString * )keychainItemAccessGroup
+
+// TODO : Criar tipos para estes blocos !!!!!!!!!!!!!!
+
+
+                             onInformCredentials:( NSString * (^)( NSURLRequest *originalRequest ))onInformCredentialsBlock
+                        onParseTokenFromResponse:( NSString * (^)( NSURLRequest *originalRequest, NSHTTPURLResponse *authenticationResponse, NSData *responseData ))onParseTokenFromResponseBlock
+                           onAuthenticationError:( BOOL(^)( NSURLRequest *originalRequest, NSHTTPURLResponse *authenticationResponse, NSError *error ))onAuthenticationErrorBlock;
 
 /**
  *  <#Description#>
  *
  *  @param regex                         <#regex description#>
  *  @param httpMethod                    <#httpMethod description#>
- *  @param url                           <#url description#>
+ *  @param tokenUrl                      <#tokenUrl description#>
  *  @param queryString                   <#queryString description#>
  *  @param body                          <#body description#>
  *  @param headers                       <#headers description#>
+ *  @param keychainItemId                <#keychainItemId description#>
+ *  @param keychainItemAccessGroup       <#keychainItemAccessGroup description#>
  *  @param onInformCredentialsBlock      <#onInformCredentialsBlock description#>
  *  @param onParseTokenFromResponseBlock <#onParseTokenFromResponseBlock description#>
  *  @param onAuthenticationErrorBlock    <#onAuthenticationErrorBlock description#>
  *
- *  @see http://en.wikipedia.org/wiki/Basic_access_authentication
+ *  @see +authenticateServicesMatchingRegexString:usingRequestWithMethod:tokenUrl:queryString:body:headers:keychainItemId:keychainItemAccessGroup:onInformCredentials:onParseTokenFromResponse:onAuthenticationError:
  */
 +( void )authenticateServicesMatching:( NSRegularExpression * )regex
                usingRequestWithMethod:( TNTHttpMethod )httpMethod
-                                  url:( NSString * )url
+                             tokenUrl:( NSString * )tokenUrl
                           queryString:( NSDictionary * )queryString
                                  body:( NSData * )body
                               headers:( NSDictionary * )headers
+                       keychainItemId:( NSString * )keychainItemId
+              keychainItemAccessGroup:( NSString * )keychainItemAccessGroup
+
+// TODO : Criar tipos para estes blocos !!!!!!!!!!!!!!
+
                   onInformCredentials:( NSString * (^)( NSURLRequest *originalRequest ))onInformCredentialsBlock
              onParseTokenFromResponse:( NSString * (^)( NSURLRequest *originalRequest, NSHTTPURLResponse *authenticationResponse, NSData *responseData ))onParseTokenFromResponseBlock
                 onAuthenticationError:( BOOL(^)( NSURLRequest *originalRequest, NSHTTPURLResponse *authenticationResponse, NSError *error ))onAuthenticationErrorBlock;
