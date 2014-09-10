@@ -12,4 +12,5 @@ Pod::Spec.new do |s|
   s.xcconfig     = { 'OTHER_LDFLAGS' => '-ObjC' }
   s.requires_arc = true
   s.dependency 'NitroMisc', '~> 1.0.1'
+  s.dependency 'NitroKeychain', '~> 1.0.0'
 end
