@@ -156,8 +156,9 @@ typedef BOOL ( ^TNTHttpConnectionOAuthAuthenticationErrorBlock )( NSURLRequest *
  *
  *  Some of its features are:
  *
+ *  - OAuth 2 (without refresh tokens).
  *  - Thread safety.
- *  - It supports GET, HEAD, DELETE, POST, PUT and PATCH HTTP methods.
+ *  - GET, HEAD, DELETE, POST, PUT and PATCH HTTP methods.
  *  - Easy query string, body and headers configuration.
  *  - Global, per connection and per request cache policy and timeout interval configuration.
  *  - Its callbacks come in two flavors: via delegate and via blocks.
@@ -172,6 +173,48 @@ typedef BOOL ( ^TNTHttpConnectionOAuthAuthenticationErrorBlock )( NSURLRequest *
  *  As opposed to managed requests, unmanaged requests do not hold their connections alive, so those connections are released as soon as the scope in which they were 
  *  created is left. That is, there is no need for the user to call cancelRequest on a connection running an unmanaged request prior to its deallocation. Therefore the
  *  user must keep a strong reference to the connection to keep it alive.
+ *
+ *
+ *  OAuth 2
+ *
+ *
+ *  TNTHttpConnection supports OAuth 2 without refresh tokens. This feature is designed to work transparently. Let's look at its flow, but
+ *  keep in mind that the only step that gives you some work is step 1:
+ *
+ *  1) You set authentication items before making any request. Just after an application starts is a good choice. See these methods
+ *     for more info about setting authentication items:
+ *     - +authenticateServicesMatching:usingRequestWithMethod:tokenUrl:queryString:body:headers:keychainItemId:keychainItemAccessGroup:onInformCredentials:onParseTokenFromResponse:onAuthenticationError:
+ *     - +authenticateServicesMatchingRegexString:usingRequestWithMethod:tokenUrl:queryString:body:headers:keychainItemId:keychainItemAccessGroup:onInformCredentials:onParseTokenFromResponse:onAuthenticationError:
+ *
+ *  2) After that, every request that fails with a 401 HTTP error code and that matches an authentication item will be put on hold
+ *     while the authentication token is being obtained.
+ *
+ *  3) The authentication token request will be fired. This header will be included with others you may or may not have set:
+ *     @{ @"Authorization": @"Basic <credentials>" }
+ *
+ *  4) While the token is being obtained, if other request that matches the same authentication item is fired (in fact, any other number
+ *     of requests), it will be also be put on hold.
+ *
+ *  5) If the authentication token request ...
+ *
+ *     5.1) Succeeds, retryRequest will be called on every connection that was put on hold and that is still
+ *          alive. But, now, the authentication token will be sent in the Authorization HTTP Header like so:
+ *          @{ @"Authorization" : @"Bearer <token>" }
+ *
+ *     5.2) Fails, you will have the chance to retry the authentication token request or to give up. If you...
+ *
+ *          5.2.1) Give up, all on hold connections that are still alive will have their delegate error callbacks/ erros
+ *                 blocks called, the same way they would if there was no authentication process in place.
+ *
+ *          5.2.2) Want to retry, you will be back at step 3.
+ *
+ *  6) When a token expires, you will be back at step 2.
+ *
+ *  As you can see, besides setting authentication items, there is nothing more you have to do. You just use TNTHttpConnection 
+ *  as before =D
+ *
+ *  TNTHttpConnection automatically handles HTTPS authentication challenges for you: authentication token urls and all urls that are matched
+ *  by authentication item regexes will be trusted.
  *
  *  For more information about OAuth 2 and HTTP Basic Authentication, see:
  *    - http://tools.ietf.org/html/rfc6749
@@ -476,7 +519,7 @@ typedef BOOL ( ^TNTHttpConnectionOAuthAuthenticationErrorBlock )( NSURLRequest *
  *
  *  @param httpMethod                    The authentication token request HTTP method.
  *
- *  @param tokenUrl                      The authentication token request url. This parameter cannot be nil.
+ *  @param tokenUrl                      The authentication token request url - should be HTTPS. This parameter cannot be nil.
  *
  *  @param queryString                   The authentication token request query string. All keys and values will be escaped. This
  *                                       parameter can be nil.
@@ -513,6 +556,7 @@ typedef BOOL ( ^TNTHttpConnectionOAuthAuthenticationErrorBlock )( NSURLRequest *
  *  @throws NSInvalidArgumentException if regexString, tokenUrl or keychainItemId is invalid.
  *
  *  @see +authenticateServicesMatching:usingRequestWithMethod:tokenUrl:queryString:body:headers:keychainItemId:keychainItemAccessGroup:onInformCredentials:onParseTokenFromResponse:onAuthenticationError:
+ *  @see +removeAllAuthenticationItems
  */
 
 +( void )authenticateServicesMatchingRegexString:( NSString * )regexString
@@ -536,7 +580,7 @@ typedef BOOL ( ^TNTHttpConnectionOAuthAuthenticationErrorBlock )( NSURLRequest *
  *
  *  @param httpMethod                    The authentication token request HTTP method.
  *
- *  @param tokenUrl                      The authentication token request url. This parameter cannot be nil.
+ *  @param tokenUrl                      The authentication token request url - should be HTTPS. This parameter cannot be nil.
  *
  *  @param queryString                   The authentication token request query string. All keys and values will be escaped. This
  *                                       parameter can be nil.
@@ -573,6 +617,7 @@ typedef BOOL ( ^TNTHttpConnectionOAuthAuthenticationErrorBlock )( NSURLRequest *
  *  @throws NSInvalidArgumentException if tokenUrl or keychainItemId is invalid.
  *
  *  @see +authenticateServicesMatchingRegexString:usingRequestWithMethod:tokenUrl:queryString:body:headers:keychainItemId:keychainItemAccessGroup:onInformCredentials:onParseTokenFromResponse:onAuthenticationError:
+ *  @see +removeAllAuthenticationItems
  */
 +( void )authenticateServicesMatching:( NSRegularExpression * )regex
                usingRequestWithMethod:( TNTHttpMethod )httpMethod
