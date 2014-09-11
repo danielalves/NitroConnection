@@ -889,6 +889,16 @@ typedef void( ^TNTHttpConnectionNotificationBlock )( TNTHttpConnection *httpConn
                                     waitUntilFinished: YES];
 }
 
++( void )removeAllAuthenticationItems
+{
+    [authenticationItemsSerializerQueue addOperations: @[
+                                                         [NSBlockOperation blockOperationWithBlock: ^{
+                                                             authenticationItems = [NSMutableArray new];
+                                                         }]
+                                                        ]
+                                    waitUntilFinished: YES];
+}
+
 +( TNTAuthenticationItem * )authenticationItemForUrl:( NSURL * )url
 {
     NSString *urlString = url.absoluteString;

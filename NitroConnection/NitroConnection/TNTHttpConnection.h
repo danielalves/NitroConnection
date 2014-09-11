@@ -586,6 +586,14 @@ typedef BOOL ( ^TNTHttpConnectionOAuthAuthenticationErrorBlock )( NSURLRequest *
              onParseTokenFromResponse:( TNTHttpConnectionOAuthParseTokenFromResponseBlock )onParseTokenFromResponseBlock
                 onAuthenticationError:( TNTHttpConnectionOAuthAuthenticationErrorBlock )onAuthenticationErrorBlock;
 
+/**
+ *  Deletes all authentication items.
+ *
+ *  @see +authenticateServicesMatching:usingRequestWithMethod:tokenUrl:queryString:body:headers:keychainItemId:keychainItemAccessGroup:onInformCredentials:onParseTokenFromResponse:onAuthenticationError:
+ *  @see +authenticateServicesMatchingRegexString:usingRequestWithMethod:tokenUrl:queryString:body:headers:keychainItemId:keychainItemAccessGroup:onInformCredentials:onParseTokenFromResponse:onAuthenticationError:
+ */
++( void )removeAllAuthenticationItems;
+
 @end
 
 /***********************************************************************
