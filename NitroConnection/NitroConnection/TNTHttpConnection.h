@@ -76,6 +76,46 @@ typedef void ( ^TNTHttpConnectionSuccessBlock )( TNTHttpConnection *connection, 
 typedef void ( ^TNTHttpConnectionErrorBlock )( TNTHttpConnection *connection, NSError *error );
 
 /**
+ *  Type of a block that is called when an authentication token request needs the user credentials.
+ *
+ *  @param originalRequest The request which originated the authentication process.
+ *
+ *  @return The user credentials or nil if you don't have the user credentials. Returning nil
+ *          will prevent the authentication process from starting and will trigger the delegate
+ *          error callback/error block of the original TNTHttpConnection.
+ */
+typedef NSString * ( ^TNTHttpConnectionOAuthInformCredentialsBlock )( NSURLRequest *originalRequest );
+
+/**
+ *  Type of a block that is called when an authentication token request succeeds. You must parse the 
+ *  authentication token and return it.
+ *
+ *  @param originalRequest         The request which originated the authentication process.
+ *  @param authenticationResponse  The authentication token request response.
+ *  @param responseData            The authentication token request response data.
+ *
+ *  @return The authentication token obtained by the authentication process, or nil if you could not
+ *          parse the authentication token. Returning nil will trigger the authentication error block.
+ *          Returning a valid token will fire a retryRequest for every TNTHttpConnection waiting for 
+ *          the authentication process to finish.
+ */
+typedef NSString * ( ^TNTHttpConnectionOAuthParseTokenFromResponseBlock )( NSURLRequest *originalRequest, NSHTTPURLResponse *authenticationResponse, NSData *responseData );
+
+/**
+ *  Type of a block that is called when an authentication token request fails or when the HTTP status code
+ *  of its response describes a HTTP error
+ *
+ *  @param originalRequest         The request which originated the authentication process.
+ *  @param authenticationResponse  The authentication token request response.
+ *  @param error                   An error specifying why the authentication token request failed.
+ *
+ *  @return YES if the authentication token request should be retried. NO otherwise. Returning NO will trigger 
+ *          the delegate error callback/error block of every TNTHttpConnection waiting for the authentication 
+ *          to process to finish.
+ */
+typedef BOOL ( ^TNTHttpConnectionOAuthAuthenticationErrorBlock )( NSURLRequest *originalRequest, NSHTTPURLResponse *authenticationResponse, NSError *error );
+
+/**
  *  The TNTHttpConnectionDelegate protocol describes methods that should be implemented by the delegate for an instance of the TNTHttpConnection class.
  */
 @protocol TNTHttpConnectionDelegate< NSObject >
@@ -451,13 +491,9 @@ typedef void ( ^TNTHttpConnectionErrorBlock )( TNTHttpConnection *connection, NS
                                          headers:( NSDictionary * )headers
                                   keychainItemId:( NSString * )keychainItemId
                          keychainItemAccessGroup:( NSString * )keychainItemAccessGroup
-
-// TODO : Criar tipos para estes blocos !!!!!!!!!!!!!!
-
-
-                             onInformCredentials:( NSString * (^)( NSURLRequest *originalRequest ))onInformCredentialsBlock
-                        onParseTokenFromResponse:( NSString * (^)( NSURLRequest *originalRequest, NSHTTPURLResponse *authenticationResponse, NSData *responseData ))onParseTokenFromResponseBlock
-                           onAuthenticationError:( BOOL(^)( NSURLRequest *originalRequest, NSHTTPURLResponse *authenticationResponse, NSError *error ))onAuthenticationErrorBlock;
+                             onInformCredentials:( TNTHttpConnectionOAuthInformCredentialsBlock )onInformCredentialsBlock
+                        onParseTokenFromResponse:( TNTHttpConnectionOAuthParseTokenFromResponseBlock )onParseTokenFromResponseBlock
+                           onAuthenticationError:( TNTHttpConnectionOAuthAuthenticationErrorBlock )onAuthenticationErrorBlock;
 
 /**
  *  <#Description#>
@@ -484,12 +520,9 @@ typedef void ( ^TNTHttpConnectionErrorBlock )( TNTHttpConnection *connection, NS
                               headers:( NSDictionary * )headers
                        keychainItemId:( NSString * )keychainItemId
               keychainItemAccessGroup:( NSString * )keychainItemAccessGroup
-
-// TODO : Criar tipos para estes blocos !!!!!!!!!!!!!!
-
-                  onInformCredentials:( NSString * (^)( NSURLRequest *originalRequest ))onInformCredentialsBlock
-             onParseTokenFromResponse:( NSString * (^)( NSURLRequest *originalRequest, NSHTTPURLResponse *authenticationResponse, NSData *responseData ))onParseTokenFromResponseBlock
-                onAuthenticationError:( BOOL(^)( NSURLRequest *originalRequest, NSHTTPURLResponse *authenticationResponse, NSError *error ))onAuthenticationErrorBlock;
+                  onInformCredentials:( TNTHttpConnectionOAuthInformCredentialsBlock )onInformCredentialsBlock
+             onParseTokenFromResponse:( TNTHttpConnectionOAuthParseTokenFromResponseBlock )onParseTokenFromResponseBlock
+                onAuthenticationError:( TNTHttpConnectionOAuthAuthenticationErrorBlock )onAuthenticationErrorBlock;
 
 @end
 

@@ -94,9 +94,9 @@ static NSMutableDictionary *authenticationItemSerializerQueuesDict;
 @property( nonatomic, readwrite, strong )NSString *keychainItemId;
 @property( nonatomic, readwrite, strong )NSString *keychainItemAccessGroup;
 
-@property( nonatomic, readwrite, copy )NSString * ( ^onInformCredentialsBlock )( NSURLRequest *originalRequest );
-@property( nonatomic, readwrite, copy )NSString * ( ^onParseTokenFromResponseBlock )( NSURLRequest *originalRequest, NSHTTPURLResponse *authenticationResponse, NSData *data );
-@property( nonatomic, readwrite, copy )BOOL( ^onAuthenticationErrorBlock )( NSURLRequest *originalRequest, NSHTTPURLResponse *authenticationResponse, NSError *error );
+@property( nonatomic, readwrite, copy )TNTHttpConnectionOAuthInformCredentialsBlock onInformCredentialsBlock;
+@property( nonatomic, readwrite, copy )TNTHttpConnectionOAuthParseTokenFromResponseBlock onParseTokenFromResponseBlock;
+@property( nonatomic, readwrite, copy )TNTHttpConnectionOAuthAuthenticationErrorBlock onAuthenticationErrorBlock;
 
 @property( nonatomic, readwrite, strong )NSMutableArray *connectionsToRetry;
 
@@ -806,9 +806,9 @@ typedef void( ^TNTHttpConnectionNotificationBlock )( TNTHttpConnection *httpConn
                                          headers:( NSDictionary * )headers
                                   keychainItemId:( NSString * )keychainItemId
                          keychainItemAccessGroup:( NSString * )keychainItemAccessGroup
-                             onInformCredentials:( NSString * (^)( NSURLRequest *originalRequest ))onInformCredentialsBlock
-                        onParseTokenFromResponse:( NSString * (^)( NSURLRequest *originalRequest, NSHTTPURLResponse *authenticationResponse, NSData *responseData ))onParseTokenFromResponseBlock
-                           onAuthenticationError:( BOOL(^)( NSURLRequest *originalRequest, NSHTTPURLResponse *authenticationResponse, NSError *error ))onAuthenticationErrorBlock
+                             onInformCredentials:( TNTHttpConnectionOAuthInformCredentialsBlock )onInformCredentialsBlock
+                        onParseTokenFromResponse:( TNTHttpConnectionOAuthParseTokenFromResponseBlock )onParseTokenFromResponseBlock
+                           onAuthenticationError:( TNTHttpConnectionOAuthAuthenticationErrorBlock )onAuthenticationErrorBlock;
 {
     NSError *error;
     NSRegularExpression *regex = [NSRegularExpression regularExpressionWithPattern: regexStr
@@ -838,9 +838,9 @@ typedef void( ^TNTHttpConnectionNotificationBlock )( TNTHttpConnection *httpConn
                               headers:( NSDictionary * )headers
                        keychainItemId:( NSString * )keychainItemId
               keychainItemAccessGroup:( NSString * )keychainItemAccessGroup
-                  onInformCredentials:( NSString * (^)( NSURLRequest *originalRequest ))onInformCredentialsBlock
-             onParseTokenFromResponse:( NSString * (^)( NSURLRequest *originalRequest, NSHTTPURLResponse *authenticationResponse, NSData *data ))onParseTokenFromResponseBlock
-                onAuthenticationError:( BOOL(^)( NSURLRequest *originalRequest, NSHTTPURLResponse *authenticationResponse, NSError *error ))onAuthenticationErrorBlock
+                  onInformCredentials:( TNTHttpConnectionOAuthInformCredentialsBlock )onInformCredentialsBlock
+             onParseTokenFromResponse:( TNTHttpConnectionOAuthParseTokenFromResponseBlock )onParseTokenFromResponseBlock
+                onAuthenticationError:( TNTHttpConnectionOAuthAuthenticationErrorBlock )onAuthenticationErrorBlock;
 {
     if( !regex )
         [NSException raise: NSInvalidArgumentException format: @"%s must not be nil", EVAL_AND_STRINGIFY( regex )];
