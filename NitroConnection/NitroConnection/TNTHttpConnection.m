@@ -939,7 +939,7 @@ typedef void( ^TNTHttpConnectionNotificationBlock )( TNTHttpConnection *httpConn
         return NO;
     
     NSString *credentials = authItem.onInformCredentialsBlock( connectionToAuthenticate.lastRequest );
-    if( credentials.length == 0 )
+    if( !credentials )
         return NO;
     
     int authItemAddress = ( int )authItem;
