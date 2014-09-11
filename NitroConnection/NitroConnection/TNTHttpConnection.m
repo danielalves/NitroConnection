@@ -990,7 +990,7 @@ typedef void( ^TNTHttpConnectionNotificationBlock )( TNTHttpConnection *httpConn
                                                                          onSuccess: ^( TNTHttpConnection *authConn, NSHTTPURLResponse *response, NSData *data ) {
                                                                              
                                                                              NSString *token = authItem.onParseTokenFromResponseBlock( originalRequest, response, data );
-                                                                             if( token.length > 0 )
+                                                                             if( !token )
                                                                              {
                                                                                  [authItem saveToken: token];
                                                                              
