@@ -845,6 +845,10 @@ typedef void( ^TNTHttpConnectionNotificationBlock )( TNTHttpConnection *httpConn
     if( !regex )
         [NSException raise: NSInvalidArgumentException format: @"%s must not be nil", EVAL_AND_STRINGIFY( regex )];
     
+    NSString *trimmedKeychainItemId = [keychainItemId stringByTrimmingCharactersInSet: [NSCharacterSet whitespaceAndNewlineCharacterSet]];
+    if( trimmedKeychainItemId.length == 0 )
+        [NSException raise: NSInvalidArgumentException format: @"Invalid %s %@", EVAL_AND_STRINGIFY( keychainItemId ), keychainItemId];
+    
     NSURL *url = [NSURL URLWithString: tokenUrl];
     if( !url )
         [NSException raise: NSInvalidArgumentException format: @"Invalid %s %@", EVAL_AND_STRINGIFY( tokenUrl ), tokenUrl];
