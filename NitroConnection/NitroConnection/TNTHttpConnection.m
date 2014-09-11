@@ -798,7 +798,7 @@ typedef void( ^TNTHttpConnectionNotificationBlock )( TNTHttpConnection *httpConn
 
 #pragma mark - OAuth 2
 
-+( void )authenticateServicesMatchingRegexString:( NSString * )regexStr
++( void )authenticateServicesMatchingRegexString:( NSString * )regexString
                           usingRequestWithMethod:( TNTHttpMethod )httpMethod
                                         tokenUrl:( NSString * )tokenUrl
                                      queryString:( NSDictionary * )queryString
@@ -811,11 +811,11 @@ typedef void( ^TNTHttpConnectionNotificationBlock )( TNTHttpConnection *httpConn
                            onAuthenticationError:( TNTHttpConnectionOAuthAuthenticationErrorBlock )onAuthenticationErrorBlock;
 {
     NSError *error;
-    NSRegularExpression *regex = [NSRegularExpression regularExpressionWithPattern: regexStr
+    NSRegularExpression *regex = [NSRegularExpression regularExpressionWithPattern: regexString
                                                                            options: NSRegularExpressionCaseInsensitive
                                                                              error: &error];
     if( error )
-        [NSException raise: NSInvalidArgumentException format: @"Invalid %s %@: %@", EVAL_AND_STRINGIFY( regexStr ), regexStr, error];
+        [NSException raise: NSInvalidArgumentException format: @"Invalid %s %@: %@", EVAL_AND_STRINGIFY( regexString ), regexString, error];
     
     return [self authenticateServicesMatching: regex
                        usingRequestWithMethod: httpMethod

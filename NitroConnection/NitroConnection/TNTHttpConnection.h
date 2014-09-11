@@ -67,7 +67,7 @@ typedef void ( ^TNTHttpConnectionDidStartBlock )( TNTHttpConnection *connection 
 typedef void ( ^TNTHttpConnectionSuccessBlock )( TNTHttpConnection *connection, NSHTTPURLResponse *response, NSData *data );
 
 /**
- *  Type of a block that is called when a request fails or when the HTTP status code of the 
+ *  Type of a block that is called when a request fails or when the HTTP status code of its
  *  response describes a HTTP error.
  *
  *  @param connection The connection which started the request.
@@ -290,7 +290,7 @@ typedef BOOL ( ^TNTHttpConnectionOAuthAuthenticationErrorBlock )( NSURLRequest *
  *  Starts a new request. If there is already a request being made, cancels it
  *  and then starts the new one.
  *
- *  @param httpMethod  The HTTP request method.
+ *  @param httpMethod  The request HTTP method.
  *
  *  @param url         The URL of the request. If this parameter is nil, this method does nothing.
  *
@@ -330,7 +330,7 @@ typedef BOOL ( ^TNTHttpConnectionOAuthAuthenticationErrorBlock )( NSURLRequest *
  *  Starts a new request. If there is already a request being made, cancels it
  *  and then starts the new one.
  *
- *  @param httpMethod    The HTTP request method.
+ *  @param httpMethod    The request HTTP method.
  *
  *  @param url           The URL of the request. If this parameter is nil, this method does nothing.
  *
@@ -445,6 +445,9 @@ typedef BOOL ( ^TNTHttpConnectionOAuthAuthenticationErrorBlock )( NSURLRequest *
  */
 
 /**
+ *  Creates an authentication item that will handle all TNTHttpConnections whose urls are matched by regex.
+ *  See TNTHttpConnection class documentation for more info about the authentication process.
+ *
  *  This is the same as calling:
  *
  *  +authenticateServicesMatching:
@@ -468,22 +471,51 @@ typedef BOOL ( ^TNTHttpConnectionOAuthAuthenticationErrorBlock )( NSURLRequest *
  *                                                                           error: &error];
  *  @endcode
  *
- *  @param regexStr                      <#regexStr description#>
- *  @param httpMethod                    <#httpMethod description#>
- *  @param tokenUrl                      <#tokenUrl description#>
- *  @param queryString                   <#queryString description#>
- *  @param body                          <#body description#>
- *  @param headers                       <#headers description#>
- *  @param keychainItemId                <#keychainItemId description#>
- *  @param keychainItemAccessGroup       <#keychainItemAccessGroup description#>
- *  @param onInformCredentialsBlock      <#onInformCredentialsBlock description#>
- *  @param onParseTokenFromResponseBlock <#onParseTokenFromResponseBlock description#>
- *  @param onAuthenticationErrorBlock    <#onAuthenticationErrorBlock description#>
+ *  @param regexString                   A string that will be converted into a regex describing which urls should be handled by this
+ *                                       authentication item. This parameter cannot be nil.
+ *
+ *  @param httpMethod                    The authentication token request HTTP method.
+ *
+ *  @param tokenUrl                      The authentication token request url. This parameter cannot be nil.
+ *
+ *  @param queryString                   The authentication token request query string. All keys and values will be escaped. This
+ *                                       parameter can be nil.
+ *
+ *  @param body                          The authentication token request body data. This parameter can be nil.
+ *
+ *  @param headers                       HTTP headers that should be added to the authentication token request HTTP header dictionary.
+ *                                       In keeping with the HTTP RFC, HTTP header field names are case-insensitive. Values are added
+ *                                       to header fields incrementally. If a value was previously set for the specified field, the
+ *                                       supplied value is appended to the existing value using the HTTP field delimiter, a comma.
+ *                                       Additionally, the length of the upload body is determined automatically, then the value of
+ *                                       Content-Length is set for you. You should not modify the following headers: Authorization,
+ *                                       Connection, Host and WWW-Authenticate. This parameter can be nil.
+ *
+ *  @param keychainItemId                The keychain item id under which the authentication token will be stored. This value must be
+ *                                       unique for each keychain entry. This parameter cannot be nil.
+ *
+ *  @param keychainItemAccessGroup       The keychain item access group for the authentication token. The keychain access group attribute
+ *                                       determines if an item can be shared amongst multiple apps whose code signing entitlements contain
+ *                                       the same keychain access group. This parameter can be nil.
+ *
+ *  @param onInformCredentialsBlock      The block that is called when an authentication token request needs the user credentials. See
+ *                                       TNTHttpConnectionOAuthInformCredentialsBlock documentation for more info. This parameter cannot
+ *                                       be nil.
+ *
+ *  @param onParseTokenFromResponseBlock The block that is called when an authentication token request succeeds. See
+ *                                       TNTHttpConnectionOAuthParseTokenFromResponseBlock documentation for more info. This parameter cannot
+ *                                       be nil.
+ *
+ *  @param onAuthenticationErrorBlock    The block that is called when an authentication token request fails or when the HTTP status code
+ *                                       of its response describes a HTTP error. This parameter can be nil.
+ *
+ *  @throws NSInvalidArgumentException if onInformCredentialsBlock or onParseTokenFromResponseBlock is nil.
+ *  @throws NSInvalidArgumentException if regexString, tokenUrl or keychainItemId is invalid.
  *
  *  @see +authenticateServicesMatching:usingRequestWithMethod:tokenUrl:queryString:body:headers:keychainItemId:keychainItemAccessGroup:onInformCredentials:onParseTokenFromResponse:onAuthenticationError:
  */
 
-+( void )authenticateServicesMatchingRegexString:( NSString * )regexStr
++( void )authenticateServicesMatchingRegexString:( NSString * )regexString
                           usingRequestWithMethod:( TNTHttpMethod )httpMethod
                                         tokenUrl:( NSString * )tokenUrl
                                      queryString:( NSDictionary * )queryString
@@ -496,19 +528,49 @@ typedef BOOL ( ^TNTHttpConnectionOAuthAuthenticationErrorBlock )( NSURLRequest *
                            onAuthenticationError:( TNTHttpConnectionOAuthAuthenticationErrorBlock )onAuthenticationErrorBlock;
 
 /**
- *  <#Description#>
+ *  Creates an authentication item that will handle all TNTHttpConnections whose urls are matched by regex.
+ *  See TNTHttpConnection class documentation for more info about the authentication process.
  *
- *  @param regex                         <#regex description#>
- *  @param httpMethod                    <#httpMethod description#>
- *  @param tokenUrl                      <#tokenUrl description#>
- *  @param queryString                   <#queryString description#>
- *  @param body                          <#body description#>
- *  @param headers                       <#headers description#>
- *  @param keychainItemId                <#keychainItemId description#>
- *  @param keychainItemAccessGroup       <#keychainItemAccessGroup description#>
- *  @param onInformCredentialsBlock      <#onInformCredentialsBlock description#>
- *  @param onParseTokenFromResponseBlock <#onParseTokenFromResponseBlock description#>
- *  @param onAuthenticationErrorBlock    <#onAuthenticationErrorBlock description#>
+ *  @param regex                         A regex describing which urls should be handled by this authentication item. This
+ *                                       parameter cannot be nil.
+ *
+ *  @param httpMethod                    The authentication token request HTTP method.
+ *
+ *  @param tokenUrl                      The authentication token request url. This parameter cannot be nil.
+ *
+ *  @param queryString                   The authentication token request query string. All keys and values will be escaped. This
+ *                                       parameter can be nil.
+ *
+ *  @param body                          The authentication token request body data. This parameter can be nil.
+ *
+ *  @param headers                       HTTP headers that should be added to the authentication token request HTTP header dictionary.
+ *                                       In keeping with the HTTP RFC, HTTP header field names are case-insensitive. Values are added 
+ *                                       to header fields incrementally. If a value was previously set for the specified field, the 
+ *                                       supplied value is appended to the existing value using the HTTP field delimiter, a comma. 
+ *                                       Additionally, the length of the upload body is determined automatically, then the value of 
+ *                                       Content-Length is set for you. You should not modify the following headers: Authorization, 
+ *                                       Connection, Host and WWW-Authenticate. This parameter can be nil.
+ *
+ *  @param keychainItemId                The keychain item id under which the authentication token will be stored. This value must be 
+ *                                       unique for each keychain entry. This parameter cannot be nil.
+ *
+ *  @param keychainItemAccessGroup       The keychain item access group for the authentication token. The keychain access group attribute
+ *                                       determines if an item can be shared amongst multiple apps whose code signing entitlements contain
+ *                                       the same keychain access group. This parameter can be nil.
+ *
+ *  @param onInformCredentialsBlock      The block that is called when an authentication token request needs the user credentials. See
+ *                                       TNTHttpConnectionOAuthInformCredentialsBlock documentation for more info. This parameter cannot 
+ *                                       be nil.
+ *
+ *  @param onParseTokenFromResponseBlock The block that is called when an authentication token request succeeds. See
+ *                                       TNTHttpConnectionOAuthParseTokenFromResponseBlock documentation for more info. This parameter cannot 
+ *                                       be nil.
+ *
+ *  @param onAuthenticationErrorBlock    The block that is called when an authentication token request fails or when the HTTP status code
+ *                                       of its response describes a HTTP error. This parameter can be nil.
+ *
+ *  @throws NSInvalidArgumentException if regex, onInformCredentialsBlock or onParseTokenFromResponseBlock is nil.
+ *  @throws NSInvalidArgumentException if tokenUrl or keychainItemId is invalid.
  *
  *  @see +authenticateServicesMatchingRegexString:usingRequestWithMethod:tokenUrl:queryString:body:headers:keychainItemId:keychainItemAccessGroup:onInformCredentials:onParseTokenFromResponse:onAuthenticationError:
  */
