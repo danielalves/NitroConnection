@@ -203,7 +203,7 @@ typedef BOOL ( ^TNTHttpConnectionOAuthAuthenticationErrorBlock )( NSURLRequest *
  *
  *     5.2) Fails, you will have the chance to retry the authentication token request or to give up. If you...
  *
- *          5.2.1) Give up, all on hold connections that are still alive will have their delegate error callbacks/ erros
+ *          5.2.1) Give up, all on hold connections that are still alive will have their delegate error callbacks/ error
  *                 blocks called, the same way they would if there was no authentication process in place.
  *
  *          5.2.2) Want to retry, you will be back at step 3.
