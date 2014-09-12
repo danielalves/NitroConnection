@@ -183,8 +183,8 @@ typedef BOOL ( ^TNTHttpConnectionOAuthAuthenticationErrorBlock )( NSURLRequest *
  *
  *  1) You set authentication items before making any request. Just after an application starts is a good choice. See these methods
  *     for more info about setting authentication items:
- *     - +authenticateServicesMatching:usingRequestWithMethod:tokenUrl:queryString:body:headers:keychainItemId:keychainItemAccessGroup:onInformCredentials:onParseTokenFromResponse:onAuthenticationError:
- *     - +authenticateServicesMatchingRegexString:usingRequestWithMethod:tokenUrl:queryString:body:headers:keychainItemId:keychainItemAccessGroup:onInformCredentials:onParseTokenFromResponse:onAuthenticationError:
+ *     - +authenticateServicesMatching:usingTokenRequestUrl:httpMethod:queryString:body:headers:keychainItemId:keychainItemAccessGroup:onInformCredentials:onParseTokenFromResponse:onAuthenticationError:
+ *     - +authenticateServicesMatchingRegexString:usingTokenRequestUrl:httpMethod:queryString:body:headers:keychainItemId:keychainItemAccessGroup:onInformCredentials:onParseTokenFromResponse:onAuthenticationError:
  *
  *  2) After that, every request that fails with a 401 HTTP error code and that matches an authentication item will be put on hold
  *     while the authentication token is being obtained.
@@ -494,8 +494,8 @@ typedef BOOL ( ^TNTHttpConnectionOAuthAuthenticationErrorBlock )( NSURLRequest *
  *  This is the same as calling:
  *
  *  +authenticateServicesMatching:
- *         usingRequestWithMethod:
- *                       tokenUrl:
+ *           usingTokenRequestUrl:
+ *                     httpMethod:
  *                    queryString:
  *                           body:
  *                        headers:
@@ -517,9 +517,9 @@ typedef BOOL ( ^TNTHttpConnectionOAuthAuthenticationErrorBlock )( NSURLRequest *
  *  @param regexString                   A string that will be converted into a regex describing which urls should be handled by this
  *                                       authentication item. This parameter cannot be nil.
  *
- *  @param httpMethod                    The authentication token request HTTP method.
- *
  *  @param tokenUrl                      The authentication token request url - should be HTTPS. This parameter cannot be nil.
+ *
+ *  @param httpMethod                    The authentication token request HTTP method.
  *
  *  @param queryString                   The authentication token request query string. All keys and values will be escaped. This
  *                                       parameter can be nil.
@@ -555,13 +555,13 @@ typedef BOOL ( ^TNTHttpConnectionOAuthAuthenticationErrorBlock )( NSURLRequest *
  *  @throws NSInvalidArgumentException if onInformCredentialsBlock or onParseTokenFromResponseBlock is nil.
  *  @throws NSInvalidArgumentException if regexString, tokenUrl or keychainItemId is invalid.
  *
- *  @see +authenticateServicesMatching:usingRequestWithMethod:tokenUrl:queryString:body:headers:keychainItemId:keychainItemAccessGroup:onInformCredentials:onParseTokenFromResponse:onAuthenticationError:
+ *  @see +authenticateServicesMatching:usingTokenRequestUrl:httpMethod:queryString:body:headers:keychainItemId:keychainItemAccessGroup:onInformCredentials:onParseTokenFromResponse:onAuthenticationError:
  *  @see +removeAllAuthenticationItems
  */
 
 +( void )authenticateServicesMatchingRegexString:( NSString * )regexString
-                          usingRequestWithMethod:( TNTHttpMethod )httpMethod
-                                        tokenUrl:( NSString * )tokenUrl
+                            usingTokenRequestUrl:( NSString * )tokenUrl
+                                      httpMethod:( TNTHttpMethod )httpMethod
                                      queryString:( NSDictionary * )queryString
                                             body:( NSData * )body
                                          headers:( NSDictionary * )headers
@@ -578,9 +578,9 @@ typedef BOOL ( ^TNTHttpConnectionOAuthAuthenticationErrorBlock )( NSURLRequest *
  *  @param regex                         A regex describing which urls should be handled by this authentication item. This
  *                                       parameter cannot be nil.
  *
- *  @param httpMethod                    The authentication token request HTTP method.
- *
  *  @param tokenUrl                      The authentication token request url - should be HTTPS. This parameter cannot be nil.
+ *
+ *  @param httpMethod                    The authentication token request HTTP method.
  *
  *  @param queryString                   The authentication token request query string. All keys and values will be escaped. This
  *                                       parameter can be nil.
@@ -616,12 +616,12 @@ typedef BOOL ( ^TNTHttpConnectionOAuthAuthenticationErrorBlock )( NSURLRequest *
  *  @throws NSInvalidArgumentException if regex, onInformCredentialsBlock or onParseTokenFromResponseBlock is nil.
  *  @throws NSInvalidArgumentException if tokenUrl or keychainItemId is invalid.
  *
- *  @see +authenticateServicesMatchingRegexString:usingRequestWithMethod:tokenUrl:queryString:body:headers:keychainItemId:keychainItemAccessGroup:onInformCredentials:onParseTokenFromResponse:onAuthenticationError:
+ *  @see +authenticateServicesMatchingRegexString:usingTokenRequestUrl:httpMethod:queryString:body:headers:keychainItemId:keychainItemAccessGroup:onInformCredentials:onParseTokenFromResponse:onAuthenticationError:
  *  @see +removeAllAuthenticationItems
  */
 +( void )authenticateServicesMatching:( NSRegularExpression * )regex
-               usingRequestWithMethod:( TNTHttpMethod )httpMethod
-                             tokenUrl:( NSString * )tokenUrl
+                 usingTokenRequestUrl:( NSString * )tokenUrl
+                           httpMethod:( TNTHttpMethod )httpMethod
                           queryString:( NSDictionary * )queryString
                                  body:( NSData * )body
                               headers:( NSDictionary * )headers
@@ -634,8 +634,8 @@ typedef BOOL ( ^TNTHttpConnectionOAuthAuthenticationErrorBlock )( NSURLRequest *
 /**
  *  Deletes all authentication items.
  *
- *  @see +authenticateServicesMatching:usingRequestWithMethod:tokenUrl:queryString:body:headers:keychainItemId:keychainItemAccessGroup:onInformCredentials:onParseTokenFromResponse:onAuthenticationError:
- *  @see +authenticateServicesMatchingRegexString:usingRequestWithMethod:tokenUrl:queryString:body:headers:keychainItemId:keychainItemAccessGroup:onInformCredentials:onParseTokenFromResponse:onAuthenticationError:
+ *  @see +authenticateServicesMatching:usingTokenRequestUrl:httpMethod:queryString:body:headers:keychainItemId:keychainItemAccessGroup:onInformCredentials:onParseTokenFromResponse:onAuthenticationError:
+ *  @see +authenticateServicesMatchingRegexString:usingTokenRequestUrl:httpMethod:queryString:body:headers:keychainItemId:keychainItemAccessGroup:onInformCredentials:onParseTokenFromResponse:onAuthenticationError:
  */
 +( void )removeAllAuthenticationItems;
 

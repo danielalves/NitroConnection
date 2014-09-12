@@ -86,8 +86,8 @@ static NSMutableDictionary *authenticationItemSerializerQueuesDict;
 
 @property( nonatomic, readwrite, strong )NSRegularExpression *servicesRegex;
 
-@property( nonatomic, readwrite, assign )TNTHttpMethod httpMethod;
 @property( nonatomic, readwrite, strong )NSString *tokenUrl;
+@property( nonatomic, readwrite, assign )TNTHttpMethod httpMethod;
 @property( nonatomic, readwrite, strong )NSDictionary *queryString;
 @property( nonatomic, readwrite, strong )NSData *body;
 @property( nonatomic, readwrite, strong )NSDictionary *headers;
@@ -799,8 +799,8 @@ typedef void( ^TNTHttpConnectionNotificationBlock )( TNTHttpConnection *httpConn
 #pragma mark - OAuth 2
 
 +( void )authenticateServicesMatchingRegexString:( NSString * )regexString
-                          usingRequestWithMethod:( TNTHttpMethod )httpMethod
-                                        tokenUrl:( NSString * )tokenUrl
+                            usingTokenRequestUrl:( NSString * )tokenUrl
+                                      httpMethod:( TNTHttpMethod )httpMethod
                                      queryString:( NSDictionary * )queryString
                                             body:( NSData * )body
                                          headers:( NSDictionary * )headers
@@ -818,8 +818,8 @@ typedef void( ^TNTHttpConnectionNotificationBlock )( TNTHttpConnection *httpConn
         [NSException raise: NSInvalidArgumentException format: @"Invalid %s %@: %@", EVAL_AND_STRINGIFY( regexString ), regexString, error];
     
     return [self authenticateServicesMatching: regex
-                       usingRequestWithMethod: httpMethod
-                                     tokenUrl: tokenUrl
+                         usingTokenRequestUrl: tokenUrl
+                                   httpMethod: httpMethod
                                   queryString: queryString
                                          body: body
                                       headers: headers
@@ -831,8 +831,8 @@ typedef void( ^TNTHttpConnectionNotificationBlock )( TNTHttpConnection *httpConn
 }
 
 +( void )authenticateServicesMatching:( NSRegularExpression * )regex
-               usingRequestWithMethod:( TNTHttpMethod )httpMethod
-                             tokenUrl:( NSString * )tokenUrl
+                 usingTokenRequestUrl:( NSString * )tokenUrl
+                           httpMethod:( TNTHttpMethod )httpMethod
                           queryString:( NSDictionary * )queryString
                                  body:( NSData * )body
                               headers:( NSDictionary * )headers
@@ -861,8 +861,8 @@ typedef void( ^TNTHttpConnectionNotificationBlock )( TNTHttpConnection *httpConn
         
     TNTAuthenticationItem *authItem = [TNTAuthenticationItem new];
     authItem.servicesRegex = regex;
-    authItem.httpMethod = httpMethod;
     authItem.tokenUrl = tokenUrl;
+    authItem.httpMethod = httpMethod;
     authItem.queryString = queryString;
     authItem.body = body;
     authItem.headers = headers;
