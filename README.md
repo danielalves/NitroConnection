@@ -174,45 +174,51 @@ OAuth 2
    is a good choice):
 
    ```objc
-   [TNTHttpConnection authenticateServicesMatching: regex
-                            usingRequestWithMethod: TNTHttpMethodPost
-                                          tokenUrl: @"https://accounts.myservice.com/token"
-                                       queryString: nil
-                                              body: nil
-                                           headers: nil
-                                    keychainItemId: @"com.myservice.accounts"
-                           keychainItemAccessGroup: nil /* If you want to share this token with other apps, set this parameter */
-                               onInformCredentials: ^NSString *( NSURLRequest *originalRequest ) {
+   [TNTHttpConnection 
+       authenticateServicesMatchingRegexString: @"^https://myservice\\.mysite\\.com/api/v1/.+"
+                        usingRequestWithMethod: TNTHttpMethodPost
+                                      tokenUrl: @"https://accounts.mysite.com/token"
+                                   queryString: nil
+                                          body: nil
+                                       headers: nil
+                                keychainItemId: @"com.mysite.accounts"
+                       keychainItemAccessGroup: nil /* If you want to share this token with other
+                                                       apps, set this parameter */
+                           onInformCredentials: ^NSString *( NSURLRequest *originalRequest ) {
                                     
-                                   // Let's say your server expects a base64
-                                   NSString* credentials = [NSString stringWithFormat: @"%@:%@", username, password];
-                                   NSData* data = [credentials dataUsingEncoding: NSUTF8StringEncoding];
-                                   NSData* base64Data = [data base64EncodedDataWithOptions: 0];
-                                   return [[NSString alloc] initWithData: base64Data encoding: NSUTF8StringEncoding];
+                               // Let's say your server expects a base64
+                               NSString* credentials = [NSString stringWithFormat: @"%@:%@", username, password];
+                               NSData* data = [credentials dataUsingEncoding: NSUTF8StringEncoding];
+                               NSData* base64Data = [data base64EncodedDataWithOptions: 0];
+                               return [[NSString alloc] initWithData: base64Data encoding: NSUTF8StringEncoding];
                                     
-                               } onParseTokenFromResponse: ^NSString *( NSURLRequest *originalRequest, NSHTTPURLResponse *authenticationResponse, NSData *data ) {
+                           } onParseTokenFromResponse: ^NSString *( NSURLRequest *originalRequest, 
+                                                                    NSHTTPURLResponse *authenticationResponse, 
+                                                                    NSData *data ) {
 
-                                   @try
-                                   {
-                                       NSString *token = [[NSString alloc] initWithData: data encoding: NSUTF8StringEncoding];
-                                       return token;
-                                   }
-                                   @catch( NSException *exception )
-                                   {
-                                       // Log error
-                                       // ...
-                                        
-                                       return nil;
-                                   }
-                                    
-                               } onAuthenticationError: ^BOOL( NSURLRequest *originalRequest, NSHTTPURLResponse *authenticationResponse, NSError *error ) {
-
+                               @try
+                               {
+                                   NSString *token = [[NSString alloc] initWithData: data encoding: NSUTF8StringEncoding];
+                                   return token;
+                               }
+                               @catch( NSException *exception )
+                               {
                                    // Log error
                                    // ...
+                                        
+                                   return nil;
+                               }
+                                    
+                           } onAuthenticationError: ^BOOL( NSURLRequest *originalRequest, 
+                                                           NSHTTPURLResponse *authenticationResponse, 
+                                                           NSError *error ) {
 
-                                   BOOL retry = false;
-                                   return retry;
-                               }];
+                               // Log error
+                               // ...
+
+                               BOOL retry = false;
+                               return retry;
+                           }];
    ```
 
   Quite a long method call, I know, but you will start to like its simplicity over time.
