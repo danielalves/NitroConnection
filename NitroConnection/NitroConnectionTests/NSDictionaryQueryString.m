@@ -24,24 +24,43 @@
     NSMutableDictionary *leonidas = [NSMutableDictionary dictionaryWithDictionary: @{ @"name": @"Leonidas" }];
     XCTAssertEqualObjects( leonidas.toQueryString, @"name=Leonidas" );
     
+    // NSDictionary is not ordered, that's why the query string may be in a different order from the dictionary initialization
     leonidas[ @"profession" ] = @"AH-UH! AH-UH! AH-UH!";
-    XCTAssertEqualObjects( leonidas.toQueryString, @"name=Leonidas&profession=AH-UH%21%20AH-UH%21%20AH-UH%21" );
+
+    NSArray *possibilities = @[ @"name=Leonidas&profession=AH-UH%21%20AH-UH%21%20AH-UH%21",
+                                @"profession=AH-UH%21%20AH-UH%21%20AH-UH%21&name=Leonidas" ];
+    
+    XCTAssertTrue( [possibilities containsObject: leonidas.toQueryString] );
+    
     
     // NSDictionary is not ordered, that's why the query string may be in a different order from the dictionary initialization
     leonidas[@"favorite movie"] = @"300";
-    XCTAssertEqualObjects( leonidas.toQueryString, @"favorite%20movie=300&name=Leonidas&profession=AH-UH%21%20AH-UH%21%20AH-UH%21" );
+    
+    possibilities = @[ @"favorite%20movie=300&name=Leonidas&profession=AH-UH%21%20AH-UH%21%20AH-UH%21",
+                       @"favorite%20movie=300&profession=AH-UH%21%20AH-UH%21%20AH-UH%21&name=Leonidas",
+                       @"name=Leonidas&profession=AH-UH%21%20AH-UH%21%20AH-UH%21&favorite%20movie=300",
+                       @"name=Leonidas&favorite%20movie=300&profession=AH-UH%21%20AH-UH%21%20AH-UH%21",
+                       @"profession=AH-UH%21%20AH-UH%21%20AH-UH%21&name=Leonidas&favorite%20movie=300",
+                       @"profession=AH-UH%21%20AH-UH%21%20AH-UH%21&favorite%20movie=300&name=Leonidas" ];
+    
+    XCTAssertTrue( [possibilities containsObject: leonidas.toQueryString] );
 }
 
 -( void )test_toQueryString_works_with_non_string_keys
 {
     NSDictionary *numbers = @{ @1: @"Ring",
-                               @2: @"Faces",
                                @3: @"Musketeers",
-                               @4: @"Four Swords Adventures",
                                @5: @"Fingers Death Punch" };
     
     // NSDictionary is not ordered, that's why the query string may be in a different order from the dictionary initialization
-    XCTAssertEqualObjects( numbers.toQueryString, @"4=Four%20Swords%20Adventures&5=Fingers%20Death%20Punch&3=Musketeers&1=Ring&2=Faces" );
+    NSArray *possibilities = @[ @"5=Fingers%20Death%20Punch&3=Musketeers&1=Ring",
+                                @"5=Fingers%20Death%20Punch&1=Ring&3=Musketeers",
+                                @"3=Musketeers&5=Fingers%20Death%20Punch&1=Ring",
+                                @"3=Musketeers&1=Ring&5=Fingers%20Death%20Punch",
+                                @"1=Ring&3=Musketeers&5=Fingers%20Death%20Punch",
+                                @"1=Ring&5=Fingers%20Death%20Punch&3=Musketeers" ];
+    
+    XCTAssertTrue( [possibilities containsObject: numbers.toQueryString] );
 }
 
 -( void )test_toQueryString_returns_empty_strings_on_empty_dictionaries
