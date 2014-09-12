@@ -186,11 +186,8 @@ OAuth 2
                                                        apps, set this parameter */
                            onInformCredentials: ^NSString *( NSURLRequest *originalRequest ) {
                                     
-                               // Let's say your server expects a base64
                                NSString* credentials = [NSString stringWithFormat: @"%@:%@", username, password];
-                               NSData* data = [credentials dataUsingEncoding: NSUTF8StringEncoding];
-                               NSData* base64Data = [data base64EncodedDataWithOptions: 0];
-                               return [[NSString alloc] initWithData: base64Data encoding: NSUTF8StringEncoding];
+                               return credentials;
                                     
                            } onParseTokenFromResponse: ^NSString *( NSURLRequest *originalRequest, 
                                                                     NSHTTPURLResponse *authenticationResponse, 
