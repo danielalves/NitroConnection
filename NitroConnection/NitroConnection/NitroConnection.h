@@ -10,6 +10,7 @@
 #define NITRO_CONNECTION_H
 
 #import <NitroConnection/NSDictionary+QueryString.h>
+#import <NitroConnection/NSMutableURLRequest+Utils.h>
 #import <NitroConnection/NSString+URLUtils.h>
 #import <NitroConnection/TNTHttpConnection.h>
 #import <NitroConnection/TNTHttpConnection+SyntaticSugar.h>

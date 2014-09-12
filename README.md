@@ -28,8 +28,9 @@ Without further ado:
 
 Now let's talk about other **NitroConnection** features:
 
+- OAuth 2 (without refresh tokens).
 - Thread safety.
-- It supports `GET`, `HEAD`, `DELETE`, `POST`, `PUT` and `PATCH` HTTP methods.
+- `GET`, `HEAD`, `DELETE`, `POST`, `PUT` and `PATCH` HTTP methods.
 - Easy query string, body params and headers configuration.
 - Global, per connection and per request cache policy and timeout interval configuration.
 - Its callbacks come in two flavors: via delegate and via blocks.
@@ -37,19 +38,19 @@ Now let's talk about other **NitroConnection** features:
 - Simple retry! Just call... `retry`!
 - Offers a way to set a request as managed or unmanaged, giving you more control on what is happening behind the scenes. More about that below.
 
-Managed Connections
--------------------
+Managed Requests
+----------------
 
-Managed connections live outside the scope in which they were created. Therefore the user should know that, if he/she does not cancel them, they will run until the request fails or succeeds. This is the default behavior on all syntatic sugar methods:
+Managed requests make their connections live outside the scope in which they were created. Therefore the user should know that, if he/she does not cancel them, they will run until failure or success, keeping their connection in memory during the process. This is the default behavior on all syntatic sugar methods:
 
 ```objc
-// This request will run until it fails or succeeds
+// This request will run until it fails, succeeds or is canceled
 [TNTHttpConnection post: @"mysite.com/api/news/mark-as-read" 
              withParams: @{ @"news-id": @1872 }
                delegate: nil];
 ```
 
-Of course, if there's a possibility you may want to cancel a request before its completion, you just need to keep a reference to it:
+Of course, if there's a possibility you may want to cancel a managed request before its completion, you just need to keep a reference to it:
 
 ```objc
 @interface SomeClass
@@ -62,14 +63,15 @@ Of course, if there's a possibility you may want to cancel a request before its 
 
 -( void )dealloc
 {
-    // This is needed to save resources
+    // This is needed to save resources and/or we don't care
+    // if the request is canceled 
     [apiConnection cancel];
 }
 
 -( void )markNewsAsRead
 {
-    // This request will run until it fails or succeeds
-    apiConnection = [TNTHttpConnection post: @"mysite.com/api/news/mark-as-read" 
+    // This request will run until it fails, succeeds or is canceled
+    apiConnection = [TNTHttpConnection post: @"mysite.com/api/news/analytics" 
                                  withParams: @{ @"news-id": @1872 }
                                    delegate: nil];
 }
@@ -77,22 +79,22 @@ Of course, if there's a possibility you may want to cancel a request before its 
 @end
 ```
 
-Or, what's even better, you could use unmanaged connections.
+Or, what's even better, you could use unmanaged requests.
 
-Unmanaged Connections
----------------------
+Unmanaged Requests
+------------------
 
-As opposed to managed connections, unmanaged connections are canceled and released as soon as they leave the scope in which they were created. That is, there is no need for the user to call `cancel` on unmanaged connections prior to their deallocations. Therefore the user must keep a strong reference to the connection:
+As opposed to managed requests, unmanaged requests do not hold their connections alive, so those connections are released as soon as the scope in which they were created is left. That is, there is no need for the user to call `cancelRequest` on a connection running an unmanaged request prior to its deallocation. Therefore the user **MUST** keep a strong reference to the connection to keep it alive:
 
 ```objc
 //
-// This will not work as intended
+// WARNING: This will not work as intended
 //
 @implementation NitroConnectionMisuseClass
 
 -( void )loadMoreVideos
 {
-    // DON'T DO THIS! This connection may never complete since
+    // DON'T DO THIS! This connection may never complete its request since
     // it will be released at the end of the scope
     [TNTHttpConnection unmanagedGet: @"mysite.com/api/videos/load-more-like-this" 
                          withParams: @{ @"video-id": @900 }
@@ -102,7 +104,7 @@ As opposed to managed connections, unmanaged connections are canceled and releas
 @end
 
 //
-// This is the right way to do it
+// THE RIGHT WAY: This is the right way to do it
 //
 @interface DevWithGreatFutureClass< TNTHttpConnectionDelegate >
 {
@@ -112,7 +114,7 @@ As opposed to managed connections, unmanaged connections are canceled and releas
 
 @implementation DevWithGreatFutureClass
 
-// Differently from managed connections, we need no dealloc implementation here
+// Differently from managed requests, we need no dealloc implementation here
 
 -( void )loadMoreVideos
 {
@@ -124,44 +126,145 @@ As opposed to managed connections, unmanaged connections are canceled and releas
 @end
 ```
 
-Managed vs Unmanaged Connections
---------------------------------
+Managed vs Unmanaged Requests
+-----------------------------
 
-So, what type of connection should you use? Well, as everything in life, it depends. The rule of thumb is:
+So, what kind of request should you use? Well, as everything in life, it depends. The rule of thumb is:
 
 - **Managed**: Very good for fire and forget requests. For example: ping a recommendation or analytics API.
-- **Unmanaged**: Fits requests that have a strong relationship to its interface context. For example: in a search result screen, as the user scrolls up, more results are fetched. When the user leaves the screen, connections should be canceled. Afterall, we don't need the search results anymore.
+- **Unmanaged**: Fits requests that have a strong relationship to its interface context. For example: in a search result screen, as the user scrolls up, more results are fetched. When the user leaves the screen, connections should be canceled. After all, search results are not needed anymore.
 
-That being said, you could stick with managed connections only, as long as you don't forget to call `cancel` on every connection that is not needed anymore.
+That being said, you could stick with managed requests only, as long as you don't forget to call `cancelRequest` on every connection that is not needed anymore. In addition to that, if you are going to fire more than one request per connection and if those have mixed types, you should always call `cancelRequest` when the connection is not needed anymore, because there is no sense in tracking what was the kind of the last request you fired.
 
 Going down one level
 --------------------
 
-**NitroConnection** offers a lot of syntatic sugar methods for your code to look better, and you are really advised to use them. But, if you want to go down, it is possible:
+**NitroConnection** offers a lot of syntatic sugar methods for your code to look better, and you are really advised to use them. But, if you want to go down one level, or if you want to fire more than one request with the same `TNTHttpConnection` object, it is possible:
 
 ```objc
 TNTHttpConnection *conn = [TNTHttpConnection new];
 conn.timeoutInterval = 5.0;
 conn.cachePolicy = NSURLRequestReloadIgnoringCacheData;
 
+// A way of firing an unmanaged request
 // We are not passing parameters just for the sake of simplicity
 [conn startRequestWithMethod: TNTHttpMethodGet
                          url: @"google.com"
                       params: nil
                      headers: nil
                      managed: NO
-                  onDidStart: nil
-                   onSuccess: nil
-                     onError: nil];
+                  onDidStart: /* A block */
+                   onSuccess: /* A block */
+                     onError: /* A block */];
                            
-// Or
+// Another way of firing a request, this time a managed one
 conn.delegate = /* an object */;
 NSURLRequest *request = /* request creation */;
 [conn startRequest: request managed: YES];
 ```
 
-Now you just discovered that what makes a connection managed or unmanaged is its current request. Yes, the managed state of a connection is mutable and the same `TNTHttpConnection` object **CAN** be used to make managed and unmanaged requests! There is no problem at all =)
+As we said before, what changes the behavior of a connection is its current request. If you don't want to get confused, don't mix request types in the same connection object or always call `cancelRequest` when the connection is not needed anymore.
 
+OAuth 2
+-------
+
+**NitroConnection** supports [OAuth 2](http://en.wikipedia.org/wiki/OAuth) without refresh tokens. This feature is designed to work transparently. Let's look at its flow, but keep in mind that the only step that gives you some work is step 1:
+
+1. You set authentication items before making any request (just after an application starts 
+   is a good choice):
+
+   ```objc
+   [TNTHttpConnection 
+       authenticateServicesMatchingRegexString: @"^https://myservice\\.mysite\\.com/api/v1/.+"
+                        usingRequestWithMethod: TNTHttpMethodPost
+                                      tokenUrl: @"https://accounts.mysite.com/token"
+                                   queryString: nil
+                                          body: nil
+                                       headers: nil
+                                keychainItemId: @"com.mysite.accounts"
+                       keychainItemAccessGroup: nil /* If you want to share this token with other
+                                                       apps, set this parameter */
+                           onInformCredentials: ^NSString *( NSURLRequest *originalRequest ) {
+                                    
+                               // Let's say your server expects a base64
+                               NSString* credentials = [NSString stringWithFormat: @"%@:%@", username, password];
+                               NSData* data = [credentials dataUsingEncoding: NSUTF8StringEncoding];
+                               NSData* base64Data = [data base64EncodedDataWithOptions: 0];
+                               return [[NSString alloc] initWithData: base64Data encoding: NSUTF8StringEncoding];
+                                    
+                           } onParseTokenFromResponse: ^NSString *( NSURLRequest *originalRequest, 
+                                                                    NSHTTPURLResponse *authenticationResponse, 
+                                                                    NSData *data ) {
+
+                               @try
+                               {
+                                   NSString *token = [[NSString alloc] initWithData: data encoding: NSUTF8StringEncoding];
+                                   return token;
+                               }
+                               @catch( NSException *exception )
+                               {
+                                   // Log error
+                                   // ...
+                                        
+                                   return nil;
+                               }
+                                    
+                           } onAuthenticationError: ^BOOL( NSURLRequest *originalRequest, 
+                                                           NSHTTPURLResponse *authenticationResponse, 
+                                                           NSError *error ) {
+
+                               // Log error
+                               // ...
+
+                               BOOL retry = false;
+                               return retry;
+                           }];
+   ```
+
+  Quite a long method call, I know, but you will start to like its simplicity over time.
+
+2. After that, every request that fails with a **401 HTTP error code** and that matches an 
+   authentication item will be put on hold while the authentication token is being obtained.
+
+3. The authentication token request will be fired. This header will be included with others
+   you may or may not have set:
+
+   ```objc
+   @{ @"Authorization": @"Basic <credentials>" }
+   ```
+
+4. While the token is being obtained, if other request that matches the same authentication item is fired (in fact, any other number of requests), it will be also be put on hold.
+
+5. If the authentication token request ...
+
+  1. Succeeds, `retryRequest` will be called on every connection that was put on hold and     
+     that is still alive. But, now, the authentication token will be sent in the
+     **Authorization HTTP Header** like so:
+
+     ```objc
+     @{ @"Authorization" : @"Bearer <token>" }
+     ```
+     
+  2. Fails, you will have the chance to retry the authentication token request or to give 
+     up. If you...
+  
+      1. Give up, all on hold connections that are still alive will have their delegate 
+         error callbacks/ error blocks called, the same way they would if there was no
+         authentication process in place.
+
+      2. Want to retry, you will be back at step 3.
+
+6. When a token expires, you will be back at step 2.
+
+As you can see, besides setting authentication items, there is nothing more you have to do. You just use **NitroConnection** as before =D
+
+**NitroConnection automatically handles HTTPS authentication challenges for you**: authentication token urls and all urls that are matched by authentication item regexes will be trusted.
+
+For more information about **OAuth 2** and **HTTP Basic Authentication**, see:
+- http://tools.ietf.org/html/rfc6749
+- http://en.wikipedia.org/wiki/OAuth
+- http://en.wikipedia.org/wiki/Basic_access_authentication
+    
 Requirements
 ------------
 

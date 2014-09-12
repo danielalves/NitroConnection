@@ -45,7 +45,9 @@
 {
     _didTimeout = NO;
     [NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(timeoutAsyncOperation) object:nil];
-    dispatch_semaphore_signal(_networkSemaphore);
+    
+    if( _networkSemaphore )
+        dispatch_semaphore_signal(_networkSemaphore);
 }
 
 -( BOOL )waitForAsyncOperationOrTimeoutWithDefaultInterval

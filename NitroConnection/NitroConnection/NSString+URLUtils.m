@@ -10,7 +10,7 @@
 
 #pragma mark - Implementation
 
-@implementation NSString( NitroConnection_URLUtils )
+@implementation NSString( URLUtils_NitroConnection )
 
 -( NSString* )urlEscapeUsingEncoding:( NSStringEncoding )encoding
 {
