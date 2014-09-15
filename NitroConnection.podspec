@@ -1,7 +1,7 @@
 Pod::Spec.new do |s|
   s.name         = 'NitroConnection'
   s.version      = '1.0.0'
-  s.summary      = 'A very fast, simple and lightweight HTTP connection wrapper for iOS as an alternative to AFNetworking'
+  s.summary      = 'A very fast, simple and lightweight HTTP connection for iOS that supports OAuth2'
   s.homepage     = 'http://github.com/danielalves/NitroConnection'
   s.license      = { :type => 'MIT', :file => 'LICENSE' }
   s.author       = 'Daniel L. Alves'
