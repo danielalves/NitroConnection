@@ -972,7 +972,7 @@ typedef void( ^TNTHttpConnectionNotificationBlock )( TNTHttpConnection *httpConn
             {
                 @synchronized( connToRetry.connection )
                 {
-                    [connToRetry.connection.callerQueue waitUntilBlockFinished: ^{
+                    [connToRetry.connection.callerQueue addOperationWithBlock: ^{
                         [connToRetry.connection failWithError: connToRetry.error];
                     }];
                 }
@@ -1001,7 +1001,7 @@ typedef void( ^TNTHttpConnectionNotificationBlock )( TNTHttpConnection *httpConn
                                                  {
                                                      @synchronized( connToRetry.connection )
                                                      {
-                                                         [connToRetry.connection.callerQueue waitUntilBlockFinished: ^{
+                                                         [connToRetry.connection.callerQueue addOperationWithBlock: ^{
                                                              [connToRetry.connection retryRequest];
                                                          }];
                                                      }
