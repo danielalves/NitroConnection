@@ -35,7 +35,8 @@ Now let's talk about other **NitroConnection** features:
 - Global, per connection and per request cache policy and timeout interval configuration.
 - Its callbacks come in two flavors: via delegate and via blocks.
 - A single **NitroConnection** can be used to make any number of requests.
-- Simple retry! Just call... `retry`!
+- Simple retry! Just call... `retryRequest`!
+- All requests processing is done in a different queue, so your main queue gets no degration.
 - Offers a way to set a request as managed or unmanaged, giving you more control on what is happening behind the scenes. More about that below.
 
 Managed Requests
@@ -46,7 +47,7 @@ Managed requests make their connections live outside the scope in which they wer
 ```objc
 // This request will run until it fails, succeeds or is canceled
 [TNTHttpConnection post: @"mysite.com/api/news/mark-as-read" 
-             withParams: @{ @"news-id": @1872 }
+                 params: @{ @"news-id": @1872 }
                delegate: nil];
 ```
 
@@ -72,7 +73,7 @@ Of course, if there's a possibility you may want to cancel a managed request bef
 {
     // This request will run until it fails, succeeds or is canceled
     apiConnection = [TNTHttpConnection post: @"mysite.com/api/news/analytics" 
-                                 withParams: @{ @"news-id": @1872 }
+                                     params: @{ @"news-id": @1872 }
                                    delegate: nil];
 }
 
@@ -97,7 +98,7 @@ As opposed to managed requests, unmanaged requests do not hold their connections
     // DON'T DO THIS! This connection may never complete its request since
     // it will be released at the end of the scope
     [TNTHttpConnection unmanagedGet: @"mysite.com/api/videos/load-more-like-this" 
-                         withParams: @{ @"video-id": @900 }
+                             params: @{ @"video-id": @900 }
                            delegate: self];
 }
 
@@ -119,7 +120,7 @@ As opposed to managed requests, unmanaged requests do not hold their connections
 -( void )loadMoreVideos
 {
     apiConnection = [TNTHttpConnection unmanagedPost: @"mysite.com/api/videos/load-more-like-this"
-                                          withParams: @{ @"video-id": @900 }
+                                              params: @{ @"video-id": @900 }
                                             delegate: self];
 }
 
@@ -150,13 +151,14 @@ conn.cachePolicy = NSURLRequestReloadIgnoringCacheData;
 // We are not passing parameters just for the sake of simplicity
 [conn startRequestWithMethod: TNTHttpMethodGet
                          url: @"google.com"
-                      params: nil
+                 queryString: nil
+                        body: nil
                      headers: nil
                      managed: NO
                   onDidStart: /* A block */
                    onSuccess: /* A block */
                      onError: /* A block */];
-                           
+
 // Another way of firing a request, this time a managed one
 conn.delegate = /* an object */;
 NSURLRequest *request = /* request creation */;
