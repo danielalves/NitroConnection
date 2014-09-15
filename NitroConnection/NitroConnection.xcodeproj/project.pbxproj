@@ -19,6 +19,7 @@
 		123C33131993EB09008627E5 /* TNTTestCase.m in Sources */ = {isa = PBXBuildFile; fileRef = 123C33121993EB09008627E5 /* TNTTestCase.m */; };
 		123C33151993F23C008627E5 /* libNitroConnection.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 12DB6C1C1989896200A1E571 /* libNitroConnection.a */; };
 		12602DF019B8EE9F00036919 /* NSMutableURLRequest+Utils.m in Sources */ = {isa = PBXBuildFile; fileRef = 12602DEF19B8EE9F00036919 /* NSMutableURLRequest+Utils.m */; };
+		12602EDB19C76C4F00036919 /* NSOperationQueue+Utils.m in Sources */ = {isa = PBXBuildFile; fileRef = 12602EDA19C76C4F00036919 /* NSOperationQueue+Utils.m */; };
 		1293650B199A795B00C48105 /* NSStringURLUtilsTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 1293650A199A795B00C48105 /* NSStringURLUtilsTests.m */; };
 		1293650D199A886200C48105 /* TNTHttpMethodsTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 1293650C199A886200C48105 /* TNTHttpMethodsTests.m */; };
 		1293650F199A8ABE00C48105 /* TNTHttpStatusCodesTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 1293650E199A8ABE00C48105 /* TNTHttpStatusCodesTests.m */; };
@@ -75,6 +76,8 @@
 		123C33141993EB65008627E5 /* TNTXCTTestMacros.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TNTXCTTestMacros.h; sourceTree = "<group>"; };
 		12602DEE19B8EE9F00036919 /* NSMutableURLRequest+Utils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSMutableURLRequest+Utils.h"; sourceTree = "<group>"; };
 		12602DEF19B8EE9F00036919 /* NSMutableURLRequest+Utils.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSMutableURLRequest+Utils.m"; sourceTree = "<group>"; };
+		12602ED919C76C4F00036919 /* NSOperationQueue+Utils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSOperationQueue+Utils.h"; sourceTree = "<group>"; };
+		12602EDA19C76C4F00036919 /* NSOperationQueue+Utils.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSOperationQueue+Utils.m"; sourceTree = "<group>"; };
 		1293650A199A795B00C48105 /* NSStringURLUtilsTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NSStringURLUtilsTests.m; sourceTree = "<group>"; };
 		1293650C199A886200C48105 /* TNTHttpMethodsTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TNTHttpMethodsTests.m; sourceTree = "<group>"; };
 		1293650E199A8ABE00C48105 /* TNTHttpStatusCodesTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TNTHttpStatusCodesTests.m; sourceTree = "<group>"; };
@@ -159,6 +162,8 @@
 				123C32C91992A61B008627E5 /* NSDictionary+QueryString.m */,
 				12602DEE19B8EE9F00036919 /* NSMutableURLRequest+Utils.h */,
 				12602DEF19B8EE9F00036919 /* NSMutableURLRequest+Utils.m */,
+				12602ED919C76C4F00036919 /* NSOperationQueue+Utils.h */,
+				12602EDA19C76C4F00036919 /* NSOperationQueue+Utils.m */,
 				123C32C5199162DC008627E5 /* NSString+URLUtils.h */,
 				123C32C6199162DC008627E5 /* NSString+URLUtils.m */,
 				12DB6C501989900D00A1E571 /* TNTHttpConnection.h */,
@@ -355,6 +360,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				123C32C419916293008627E5 /* TNTHttpConnection+SyntaticSugar.m in Sources */,
+				12602EDB19C76C4F00036919 /* NSOperationQueue+Utils.m in Sources */,
 				123C32C7199162DC008627E5 /* NSString+URLUtils.m in Sources */,
 				123C32CA1992A61B008627E5 /* NSDictionary+QueryString.m in Sources */,
 				12602DF019B8EE9F00036919 /* NSMutableURLRequest+Utils.m in Sources */,
