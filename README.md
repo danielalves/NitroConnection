@@ -36,7 +36,7 @@ Now let's talk about other **NitroConnection** features:
 - Its callbacks come in two flavors: via delegate and via blocks.
 - A single **NitroConnection** can be used to make any number of requests.
 - Simple retry! Just call... `retryRequest`!
-- All requests processing is done in a different queue, so your main queue gets no degration.
+- All requests are ran outside of the main queue, so the application interface keeps as fast as it should.
 - Offers a way to set a request as managed or unmanaged, giving you more control on what is happening behind the scenes. More about that below.
 
 Managed Requests
