@@ -164,7 +164,8 @@ typedef BOOL ( ^TNTHttpConnectionOAuthAuthenticationErrorBlock )( NSURLRequest *
  *  - Its callbacks come in two flavors: via delegate and via blocks.
  *  - A single NitroConnection can be used to make any number of requests.
  *  - Simple retry! Just call... retryRequest!
- *  - All requests are ran outside of the main queue, so the application interface keeps as fast as it should.
+ *  - All requests are ran outside of the main queue, so the application interface keeps as fast as it should. And the callback blocks/delegate methods are called
+ *    on the queue from where the request was fired, so it's easy to keep your application logic flow.
  *  - Offers a way to set a request as managed or unmanaged, giving you more control on what is happening behind the scenes.
  *
  *  Managed requests make their connections live outside the scope in which they were created. Therefore the user should know that, if he/she does not cancel them, 
