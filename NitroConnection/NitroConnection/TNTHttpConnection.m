@@ -749,7 +749,7 @@ typedef void( ^TNTHttpConnectionNotificationBlock )( TNTHttpConnection *httpConn
     if( !connection )
         return;
     
-    int address = ( int )connection;
+    intptr_t address = ( intptr_t )connection;
     
     [managedConnectionsSerializerQueue waitUntilBlockFinished: ^{
         managedConnections[@( address )] = connection;
@@ -761,7 +761,7 @@ typedef void( ^TNTHttpConnectionNotificationBlock )( TNTHttpConnection *httpConn
     if( !connection )
         return;
     
-    int address = ( int )connection;
+    intptr_t address = ( intptr_t )connection;
 
     [managedConnectionsSerializerQueue waitUntilBlockFinished: ^{
         [managedConnections removeObjectForKey: @( address )];
@@ -864,7 +864,7 @@ typedef void( ^TNTHttpConnectionNotificationBlock )( TNTHttpConnection *httpConn
     authItem.onParseTokenFromResponseBlock = onParseTokenFromResponseBlock;
     authItem.onAuthenticationErrorBlock = onAuthenticationErrorBlock;
     
-    int authItemAddress = ( int )authItem;
+    intptr_t authItemAddress = ( intptr_t )authItem;
     
     [authenticationItemsSerializerQueue waitUntilBlockFinished: ^{
         
@@ -873,7 +873,7 @@ typedef void( ^TNTHttpConnectionNotificationBlock )( TNTHttpConnection *httpConn
         NSOperationQueue *authenticationItemQueue = [NSOperationQueue new];
         authenticationItemQueue.maxConcurrentOperationCount = 1;
         
-        authenticationItemQueue.name = [NSString stringWithFormat: @"AuthenticationItemQueue_%d", authItemAddress];
+        authenticationItemQueue.name = [NSString stringWithFormat: @"AuthenticationItemQueue_%ld", authItemAddress];
         authenticationItemSerializerQueuesDict[ @( authItemAddress ) ] = authenticationItemQueue;
     }];
 }
@@ -935,7 +935,7 @@ typedef void( ^TNTHttpConnectionNotificationBlock )( TNTHttpConnection *httpConn
     if( !credentials )
         return NO;
     
-    int authItemAddress = ( int )authItem;
+    intptr_t authItemAddress = ( intptr_t )authItem;
     NSOperationQueue *serializerQueue = authenticationItemSerializerQueuesDict[@( authItemAddress )];
     
     // Keeps a strong reference for the original request
