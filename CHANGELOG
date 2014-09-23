@@ -1,0 +1,7 @@
+
+Version 1.0.1:
+  - Fixing implementation for 64bit devices: must always use intptr_t instead of int for pointers
+
+Version 1.0.0:
+  - First release! Uhull!
+ 
